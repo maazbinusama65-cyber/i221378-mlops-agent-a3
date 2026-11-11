@@ -52,5 +52,6 @@ class Settings:
             kubeconfig=e.get("KUBECONFIG") or None,
             dvc_datasets=_csv(e.get("AGENT_DVC_DATASETS", "data/churn.csv")),
             tool_timeout_s=float(e.get("AGENT_TOOL_TIMEOUT_S", cls.tool_timeout_s)),
+            log_file=Path(e.get("AGENT_LOG_FILE", str(cls.log_file))),
             max_model_age_days=int(e.get("AGENT_MAX_MODEL_AGE_DAYS", cls.max_model_age_days)),
         )
