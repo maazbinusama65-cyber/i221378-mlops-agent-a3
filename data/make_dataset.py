@@ -28,9 +28,15 @@ def generate(version: str) -> pd.DataFrame:
     contract = rng.choice([1, 12, 24], n, p=[0.55, 0.3, 0.15])
     usage = rng.normal(40 - 5 * drift, 12, n).clip(0, 100)
     logit = (
-        -1.2 - 0.045 * tenure + 0.02 * (monthly - 65) + 0.45 * tickets - 0.06 * (contract - 1) / 11 * 6 - 0.03 * (usage - 40)
+        -0.06 * tenure
+        + 0.035 * (monthly - 65)
+        + 0.7 * tickets
+        - 0.08 * (contract - 1)
+        - 0.06 * (usage - 40)
+        + 0.04 * (tenure - 36)
+        + 0.9 * ((tickets >= 3) & (contract == 1))
     )
-    prob = 1 / (1 + np.exp(-logit))
+    prob = 1 / (1 + np.exp(-(2.5 * logit - 1.2)))
     churn = (rng.random(n) < prob).astype(int)
     return pd.DataFrame(
         {

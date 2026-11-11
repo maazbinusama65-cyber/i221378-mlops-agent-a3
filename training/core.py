@@ -154,7 +154,12 @@ def log_run(
             mlflow.set_tag("quality_gate", "passed" if not gate_result else "failed")
             mlflow.log_dict({"violations": gate_result}, "quality_gate.json")
         mlflow.log_text(json.dumps(metrics, indent=2), "metrics.json")
-        mlflow.sklearn.log_model(model, name="model", registered_model_name=REGISTERED_MODEL if register else None)
+        mlflow.sklearn.log_model(
+            model,
+            name="model",
+            serialization_format="cloudpickle",
+            registered_model_name=REGISTERED_MODEL if register else None,
+        )
         return run.info.run_id
 
 
