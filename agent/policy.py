@@ -50,6 +50,8 @@ def assess(ev: Evidence, *, max_model_age_days: int, require_current_dataset: bo
     if ev.deployment:
         facts.append(f"Deployed app {ev.deployment['version_label']} (image {ev.deployment['image']}) serves model run "
                      f"{deployed_run_id} trained on dataset {deployed_dataset}.")
+        if deployed_dataset is None:
+            uncertainties.append("Deployed dataset version is not recorded in the ConfigMap (DATASET_VERSION missing): data freshness cannot be assessed.")
     else:
         uncertainties.append("Deployment details unknown: " + ev.errors.get("k8s_app_version", "Kubernetes evidence missing") + ".")
     if ev.deployment_health:
@@ -114,7 +116,8 @@ def assess(ev: Evidence, *, max_model_age_days: int, require_current_dataset: bo
         triggers.append(f"User-supplied degradation evidence: {ev.degradation_report[:200]}")
 
     # --- verdict ---------------------------------------------------------------------------
-    enough = ev.deployment is not None and ev.current_dataset is not None and ev.deployed_run is not None
+    enough = (ev.deployment is not None and deployed_dataset is not None and ev.current_dataset is not None
+              and ev.deployed_run is not None)
     if triggers:
         verdict = "retraining_recommended"
         actions = ["Review the trigger(s) above; retraining is a recommendation only and has NOT been started.",

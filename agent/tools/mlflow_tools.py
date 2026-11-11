@@ -208,7 +208,7 @@ def build_tools(settings: Settings) -> list[Tool]:
         Tool("mlflow_list_runs", "mlflow", "List recent runs (newest first) with key metrics and dataset version.", MlflowListRunsArgs, m.list_runs),
         Tool("mlflow_get_run", "mlflow", "Full params, metrics, DVC/Git provenance tags, artifacts and registry versions of one run.", MlflowRunArgs, m.get_run),
         Tool("mlflow_best_run", "mlflow", "Best recent run by a metric, with ranking and production-readiness caveats.", MlflowBestArgs, m.best_run),
-        Tool("mlflow_compare_runs", "mlflow", "Compare runs side by side (run_ids or last_n).", MlflowCompareRunsArgs, m.compare_runs),
+        Tool("mlflow_compare_runs", "mlflow", "Compare runs side by side with winner per metric and params. USE THIS for 'compare the last N runs' (last_n) or specific run_ids.", MlflowCompareRunsArgs, m.compare_runs),
         Tool("mlflow_compare_experiments", "mlflow", "Compare two or more experiments on a metric.", MlflowCompareExperimentsArgs, m.compare_experiments),
         Tool("mlflow_model_registry", "mlflow", "Registered model versions, aliases (production/candidate) and source runs.", MlflowRegistryArgs, m.registry),
     ]

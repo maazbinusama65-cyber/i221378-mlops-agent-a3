@@ -14,6 +14,12 @@ from agent.schemas import AirflowLogsArgs, AirflowNoArgs, AirflowRunArgs, Airflo
 from agent.tools.base import Tool, ToolError, ToolRejected, ToolUnavailable
 
 FAILED_STATES = {"failed", "upstream_failed"}
+# Parameters an operator may override when triggering: numeric ranges, or a tuple of allowed values.
+ALLOWED_CONF: dict[str, tuple] = {
+    "min_f1": (0.0, 1.0), "min_recall": (0.0, 1.0), "n_estimators": (10, 500), "max_depth": (1, 30),
+    "algorithm": (("random_forest", "logistic_regression"), None),
+    "data_path": (("data/churn.csv",), None),
+}
 
 
 class AirflowClient:
@@ -42,9 +48,12 @@ class AirflowClient:
                 with self._lock:
                     if self._token is None:
                         self._token = self._login()
-                resp = self._http.request(method, f"/api/v2{path}", headers={"Authorization": f"Bearer {self._token}"}, **kw)
+                    token = self._token
+                resp = self._http.request(method, f"/api/v2{path}", headers={"Authorization": f"Bearer {token}"}, **kw)
                 if resp.status_code == 401 and attempt == 1:
-                    self._token = None
+                    with self._lock:
+                        if self._token == token:
+                            self._token = None
                     continue
                 break
         except (httpx.ConnectError, httpx.TimeoutException, httpx.NetworkError) as exc:
@@ -146,16 +155,24 @@ class AirflowTools:
 
     def trigger(self, args: AirflowTriggerArgs) -> dict[str, Any]:
         self._approved(args.dag_id)
-        run = self.api.request("POST", f"/dags/{args.dag_id}/dagRuns", json={"logical_date": None, "conf": args.conf})
+        run = self.api.request("POST", f"/dags/{args.dag_id}/dagRuns", json={"logical_date": None, "conf": args.conf or {}})
         return {"triggered": True, "dag_id": args.dag_id, **_run_row(run)}
 
     # -- safety hooks ----------------------------------------------------------------------
     def guard_trigger(self, args: BaseModel) -> None:
         self._approved(args.dag_id)  # type: ignore[attr-defined]
+        for key, value in (args.conf or {}).items():  # type: ignore[attr-defined]
+            if key not in ALLOWED_CONF:
+                raise ToolRejected(f"DAG conf key {key!r} is not allowed; permitted: {sorted(ALLOWED_CONF)}")
+            low, high = ALLOWED_CONF[key]
+            if isinstance(low, (int, float)) and not (isinstance(value, (int, float)) and low <= value <= high):
+                raise ToolRejected(f"DAG conf {key}={value!r} outside the permitted range [{low}, {high}]")
+            if isinstance(low, tuple) and value not in low:
+                raise ToolRejected(f"DAG conf {key}={value!r} not in {list(low)}")
 
     @staticmethod
     def describe_trigger(args: BaseModel) -> str:
-        return f"Trigger Airflow DAG '{args.dag_id}' with conf={args.conf}"  # type: ignore[attr-defined]
+        return f"Trigger Airflow DAG '{args.dag_id}' with conf={args.conf or {}}"  # type: ignore[attr-defined]
 
 
 def build_tools(settings: Settings, client: AirflowClient | None = None) -> list[Tool]:

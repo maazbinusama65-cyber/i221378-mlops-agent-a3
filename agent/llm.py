@@ -16,6 +16,10 @@ class LLMError(RuntimeError):
     """The model could not be reached or kept failing after retries."""
 
 
+class LLMToolCallError(LLMError):
+    """The provider rejected the model's tool call (schema validation); the model can be asked to retry."""
+
+
 @dataclass
 class ToolCall:
     id: str
@@ -94,6 +98,8 @@ class OpenAICompatLLM:
                 last = exc
                 time.sleep(self._wait(exc, attempt))
             except self._openai.APIStatusError as exc:
+                if exc.status_code == 400 and "tool call validation failed" in str(exc):
+                    raise LLMToolCallError(str(exc)[:400]) from exc
                 raise LLMError(f"LLM API error {exc.status_code}: {str(exc)[:300]}") from exc
         raise LLMError(f"LLM unavailable after {self.max_retries} retries: {str(last)[:200]}")
 

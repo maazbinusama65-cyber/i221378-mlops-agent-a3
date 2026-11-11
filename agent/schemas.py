@@ -104,31 +104,34 @@ class MlflowRegistryArgs(ToolArgs):
 
 
 # ---- Airflow -----------------------------------------------------------------------------
+SAFE_ID = r"^[A-Za-z0-9_.:+\-]+$"  # Airflow ids: no slashes, queries or traversal
+
+
 class AirflowNoArgs(ToolArgs):
     pass
 
 
 class AirflowRunsArgs(ToolArgs):
-    dag_id: str = "churn_training_pipeline"
+    dag_id: str = Field("churn_training_pipeline", pattern=SAFE_ID)
     limit: int = Field(5, ge=1, le=20)
 
 
 class AirflowRunArgs(ToolArgs):
-    dag_id: str = "churn_training_pipeline"
-    run_id: str | None = Field(None, description="DAG run id; omit for the latest run")
+    dag_id: str = Field("churn_training_pipeline", pattern=SAFE_ID)
+    run_id: str | None = Field(None, pattern=SAFE_ID, description="DAG run id; omit for the latest run")
 
 
 class AirflowLogsArgs(ToolArgs):
-    dag_id: str = "churn_training_pipeline"
-    run_id: str | None = None
-    task_id: str
+    dag_id: str = Field("churn_training_pipeline", pattern=SAFE_ID)
+    run_id: str | None = Field(None, pattern=SAFE_ID)
+    task_id: str = Field(pattern=SAFE_ID)
     try_number: int | None = Field(None, ge=1)
     tail_lines: int = Field(40, ge=5, le=200)
 
 
 class AirflowTriggerArgs(ToolArgs):
-    dag_id: str = "churn_training_pipeline"
-    conf: dict[str, Any] = Field(default_factory=dict, description="Optional DAG params, e.g. {'min_f1': 0.6}")
+    dag_id: str = Field("churn_training_pipeline", pattern=SAFE_ID)
+    conf: dict[str, Any] | None = Field(None, description="Optional DAG params, e.g. {'min_f1': 0.6}; omit for defaults")
 
 
 # ---- Kubernetes --------------------------------------------------------------------------

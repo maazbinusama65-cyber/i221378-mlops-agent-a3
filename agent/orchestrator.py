@@ -9,13 +9,14 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from agent.config import Settings
-from agent.llm import LLM, LLMError
+from agent.llm import LLM, LLMError, LLMToolCallError
 from agent.logging_utils import get_logger, log_event
 from agent.schemas import Status, ToolResult
 from agent.tools import airflow_tools, analysis_tools, dvc_tools, kubernetes_tools, mlflow_tools
 from agent.tools.base import ToolRegistry
 
 MAX_TOOL_CHARS = 2600
+MAX_TOOL_CALL_REPAIRS = 2
 
 SYSTEM_PROMPT = """You are an MLOps agent operating real DVC, MLflow, Apache Airflow and Kubernetes systems.
 RULES
@@ -92,10 +93,21 @@ class Orchestrator:
         ]
         specs = self.registry.specs()
         pending: list[dict[str, Any]] = []
+        repairs = 0
         log_event(self.logger, event="request_start", request_id=request_id, message=user_message[:200])
         for step in range(1, self.max_steps + 1):
             try:
                 reply = self.llm.chat(messages, specs)
+            except LLMToolCallError as exc:
+                repairs += 1
+                log_event(self.logger, event="tool_call_rejected_by_provider", request_id=request_id, error=str(exc)[:200])
+                if repairs <= MAX_TOOL_CALL_REPAIRS:
+                    messages.append({"role": "user", "content": "Your previous tool call was rejected as invalid "
+                                     f"({str(exc)[:200]}). Call the tool again with arguments that match its schema "
+                                     "(omit optional arguments instead of sending null)."})
+                    continue
+                return AgentResponse(f"The language model kept producing invalid tool calls ({exc}).", request_id, step,
+                                     list(self.registry.ledger), pending, error=str(exc))
             except LLMError as exc:
                 log_event(self.logger, event="llm_error", request_id=request_id, error=str(exc))
                 return AgentResponse(

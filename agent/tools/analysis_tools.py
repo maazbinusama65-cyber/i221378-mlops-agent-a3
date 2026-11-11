@@ -20,8 +20,9 @@ def build_tools(settings: Settings, registry: ToolRegistry) -> list[Tool]:
 
     def assess_retraining_need(args: RetrainArgs) -> dict[str, Any]:
         ev = policy.Evidence(degradation_report=args.degradation_report)
-        ev.deployment = gather("k8s_app_version", {}, ev)
-        ev.deployment_health = gather("k8s_diagnose_deployment", {}, ev)
+        k8s_args = {"namespace": settings.k8s_namespaces[0], "deployment": settings.k8s_deployment}
+        ev.deployment = gather("k8s_app_version", k8s_args, ev)
+        ev.deployment_health = gather("k8s_diagnose_deployment", k8s_args, ev)
         ev.current_dataset = gather("dvc_dataset_version", {}, ev)
         ev.best_run = gather("mlflow_best_run", {"metric": "f1", "recent": 20}, ev)
         run_id = ((ev.deployment or {}).get("config") or {}).get("MODEL_RUN_ID")
@@ -36,4 +37,4 @@ def build_tools(settings: Settings, registry: ToolRegistry) -> list[Tool]:
     return [Tool("assess_retraining_need", "analysis",
                  "Correlate MLflow + DVC + Kubernetes + Airflow evidence and apply the explicit retraining policy. "
                  "Never starts retraining. Pass degradation_report ONLY if the user supplied one.",
-                 RetrainArgs, assess_retraining_need, timeout_s=120.0)]
+                 RetrainArgs, assess_retraining_need, timeout_s=240.0)]

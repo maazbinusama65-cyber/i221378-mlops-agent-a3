@@ -20,7 +20,11 @@ _PATTERNS = [
     re.compile(r"gsk_[A-Za-z0-9]{10,}"),
     re.compile(r"sk-[A-Za-z0-9_\-]{16,}"),
     re.compile(r"eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]*"),  # JWTs
-    re.compile(r"(?i)(password|token|api[_-]?key|secret)\s*[=:]\s*\S+"),
+    re.compile(r"(?i)(password|passwd|token|api[_-]?key|secret)[\"']?\s*[=:]\s*[\"']?[^\s\"',}]+"),
+    re.compile(r"(?i)basic\s+[A-Za-z0-9+/=]{8,}"),
+    re.compile(r"(?i)(?<=://)[^\s/:@]+:[^\s/@]+(?=@)"),  # scheme://user:password@host
+    re.compile(r"\b(?:ghp|gho|ghs|github_pat)_[A-Za-z0-9_]{16,}"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
 ]
 _registered_secrets: set[str] = set()
 

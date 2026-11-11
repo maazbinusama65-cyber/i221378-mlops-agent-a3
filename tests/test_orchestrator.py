@@ -122,3 +122,20 @@ def test_runaway_tool_loops_are_stopped(registry: ToolRegistry):
     llm = ScriptedLLM([call("t") for _ in range(3)])
     resp = Orchestrator(llm, registry, max_steps=3).run("loop forever")
     assert resp.error == "max_steps" and len(resp.evidence) == 3
+
+
+def test_provider_side_tool_call_rejection_is_repaired_by_asking_the_model_again(registry: ToolRegistry):
+    from agent.llm import LLMToolCallError
+
+    class Flaky(ScriptedLLM):
+        def chat(self, messages, tools):
+            if not self.seen:
+                self.seen.append(list(messages))
+                raise LLMToolCallError("conf: expected object, but got null")
+            return super().chat(messages, tools)
+
+    registry.register(Tool("t", "x", "d", DvcNoArgs, lambda a: {"ok": True}))
+    llm = Flaky([call("t"), say("done [E1]")])
+    resp = Orchestrator(llm, registry).run("q")
+    assert resp.error is None and resp.evidence[0].ok
+    assert "rejected as invalid" in llm.seen[-1][-3]["content"] or any("rejected as invalid" in str(m) for m in llm.seen[-1])

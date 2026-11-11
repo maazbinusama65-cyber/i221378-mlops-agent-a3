@@ -27,8 +27,8 @@ from training.provenance import file_md5
 
 ALLOWED_DVC = {"status", "diff", "get", "list", "data", "version"}
 ALLOWED_GIT = {"log", "show", "rev-parse", "tag", "describe", "status", "ls-files"}
-_REV_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/\-~^]*$")
-_MD5_RE = re.compile(r"^[0-9a-f]{32}$")
+_REV_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/\-~^]*")
+_MD5_RE = re.compile(r"[0-9a-f]{32}")
 SANDBOX = ".agent-sandbox"
 
 
@@ -58,7 +58,7 @@ def run_dvc(cwd: Path, *args: str, timeout: float = 25.0) -> subprocess.Complete
 
 
 def _check_rev(rev: str) -> str:
-    if not _REV_RE.match(rev):
+    if not _REV_RE.fullmatch(rev):
         raise ToolRejected(f"invalid git revision {rev!r}")
     return rev
 
@@ -140,7 +140,7 @@ class DvcTools:
     def resolve_reference(self, args: DvcResolveArgs) -> dict[str, Any]:
         if not (args.md5 or args.version):
             raise ToolError("provide md5 or version")
-        if args.md5 and not _MD5_RE.match(args.md5):
+        if args.md5 and not _MD5_RE.fullmatch(args.md5):
             raise ToolRejected(f"invalid md5 {args.md5!r}")
         path = self._dataset(args.path)
         history = run_git(self.root, "log", "--format=%H", "--", f"{path}.dvc").split()
@@ -232,8 +232,9 @@ def build_tools(settings: Settings) -> list[Tool]:
              "Find the Git commit/tag/version for a dataset md5 (from an MLflow run's dvc.md5 tag) or a version label.",
              DvcResolveArgs, d.resolve_reference),
         Tool("dvc_compare_versions", "dvc", "Compare two dataset versions (git revs/tags): md5, size, DVC diff.", DvcCompareArgs, d.compare_versions),
-        Tool("dvc_check_changes", "dvc", "Detect whether the tracked data in the working tree changed vs its recorded md5.", DvcDatasetArgs, d.check_changes),
+        Tool("dvc_check_changes", "dvc", "Detect whether the tracked data in the working tree changed vs its recorded md5.", DvcDatasetArgs, d.check_changes,
+             timeout_s=60.0),
         Tool("dvc_explain_reproduce", "dvc",
              "Explain how to reproduce a dataset version; verify=true safely exports it to a sandbox and checks the md5.",
-             DvcReproduceArgs, d.explain_reproduce),
+             DvcReproduceArgs, d.explain_reproduce, timeout_s=90.0),
     ]

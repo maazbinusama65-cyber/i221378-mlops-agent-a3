@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import contextvars
 import secrets
+import threading
 import time
 import uuid
 from collections.abc import Callable
@@ -16,6 +18,9 @@ from pydantic import BaseModel, ValidationError
 from agent.config import Settings
 from agent.logging_utils import get_logger, log_event, redact, redact_text
 from agent.schemas import Status, ToolResult
+
+_epoch_var: contextvars.ContextVar[int | None] = contextvars.ContextVar("ledger_epoch", default=None)
+MAX_PENDING = 20
 
 
 class ToolUnavailable(RuntimeError):
@@ -59,6 +64,9 @@ class ToolRegistry:
     ledger: list[ToolResult] = field(default_factory=list)
     pending: dict[str, PendingAction] = field(default_factory=dict)
     _pool: ThreadPoolExecutor = field(default_factory=lambda: ThreadPoolExecutor(max_workers=8), repr=False)
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+    _epoch: int = 0
+    _seq: int = 0
 
     def __post_init__(self) -> None:
         self.logger = get_logger(self.settings.log_file)
@@ -85,6 +93,15 @@ class ToolRegistry:
     # ------------------------------------------------------------------ execution
     def execute(self, name: str, raw_args: dict[str, Any] | None, request_id: str | None = None, *, confirmed: bool = False) -> ToolResult:
         request_id = request_id or uuid.uuid4().hex[:12]
+        # Bind this call (and any nested calls made from its worker thread) to the current ledger epoch so a
+        # late result from a timed-out call can never pollute a later request's evidence ledger.
+        token = _epoch_var.set(_epoch_var.get() if _epoch_var.get() is not None else self._epoch)
+        try:
+            return self._execute(name, raw_args, request_id, confirmed)
+        finally:
+            _epoch_var.reset(token)
+
+    def _execute(self, name: str, raw_args: dict[str, Any] | None, request_id: str, confirmed: bool) -> ToolResult:
         started = time.perf_counter()
         tool = self.tools.get(name)
         if tool is None:
@@ -104,13 +121,16 @@ class ToolRegistry:
                 return self._request_confirmation(tool, args, request_id, started, raw_args)
 
         timeout = tool.timeout_s or self.settings.tool_timeout_s
-        future = self._pool.submit(tool.fn, args)
+        future = self._pool.submit(contextvars.copy_context().run, tool.fn, args)
         try:
             data = future.result(timeout=timeout)
             return self._finish(name, Status.OK, request_id, started, data=data, args=raw_args)
         except FutureTimeout:
             future.cancel()
-            return self._finish(name, Status.TIMEOUT, request_id, started, error=f"timed out after {timeout}s", args=raw_args)
+            note = f"timed out after {timeout}s"
+            if tool.access == "write":
+                note += "; OUTCOME UNKNOWN - the change may still have been applied. Verify the current state before retrying."
+            return self._finish(name, Status.TIMEOUT, request_id, started, error=note, args=raw_args)
         except ToolUnavailable as exc:
             return self._finish(name, Status.UNAVAILABLE, request_id, started, error=str(exc), args=raw_args)
         except ToolRejected as exc:
@@ -122,6 +142,12 @@ class ToolRegistry:
 
     # ------------------------------------------------------------------ confirmations (human only)
     def _request_confirmation(self, tool: Tool, args: BaseModel, request_id: str, started: float, raw_args: Any) -> ToolResult:
+        now = time.time()
+        for stale in [cid for cid, p in self.pending.items() if p.expires_at < now]:
+            del self.pending[stale]
+        if len(self.pending) >= MAX_PENDING:
+            return self._finish(tool.name, Status.REJECTED, request_id, started,
+                                error=f"too many unconfirmed actions pending ({MAX_PENDING}); confirm or wait for expiry", args=raw_args)
         confirmation_id = secrets.token_hex(4)
         summary = tool.describe(args) if tool.describe else f"{tool.name}({args.model_dump()})"
         self.pending[confirmation_id] = PendingAction(
@@ -153,18 +179,29 @@ class ToolRegistry:
     def _finish(self, name: str, status: Status, request_id: str, started: float, *, data: dict | None = None,
                 error: str | None = None, args: Any = None) -> ToolResult:
         duration = round((time.perf_counter() - started) * 1000, 1)
+        epoch = _epoch_var.get()
+        with self._lock:
+            current = epoch is None or epoch == self._epoch
+            evidence_id = None
+            if current:
+                self._seq += 1
+                evidence_id = f"E{self._seq}"
         result = ToolResult(
-            tool=name, status=status, data=data, error=redact_text(error) if error else None,
-            duration_ms=duration, request_id=request_id, evidence_id=f"E{len(self.ledger) + 1}",
+            tool=name, status=status, data=redact(data) if data is not None else None,
+            error=redact_text(error) if error else None, duration_ms=duration, request_id=request_id, evidence_id=evidence_id,
         )
-        self.ledger.append(result)
+        if current:
+            with self._lock:
+                self.ledger.append(result)
         log_event(self.logger, event="tool_call", tool=name, status=status.value, duration_ms=duration,
-                  request_id=request_id, evidence_id=result.evidence_id, args=redact(args or {}),
-                  error=result.error)
+                  request_id=request_id, evidence_id=evidence_id, stale=not current, args=redact(args or {}), error=result.error)
         return result
 
     def reset_ledger(self) -> None:
-        self.ledger = []
+        with self._lock:
+            self._epoch += 1
+            self._seq = 0
+            self.ledger = []
 
 
 def _short_validation(exc: ValidationError) -> str:
