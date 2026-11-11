@@ -1,0 +1,8 @@
+outs:
+- md5: 34e076f26fca5998a5cb566cf772ff94
+  size: 33261
+  hash: md5
+  path: churn.csv
+meta:
+  version: v1
+  description: "Synthetic churn dataset, 1500 rows (seed 11)"
