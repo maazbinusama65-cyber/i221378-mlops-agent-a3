@@ -1,0 +1,12 @@
+.venv
+.git
+.dvc
+.dvc-storage
+data
+dags
+tests
+docs
+screenshots
+infra
+__pycache__
+*.pyc
