@@ -125,13 +125,13 @@ def churn_training_pipeline():
         return evaluated["run_id"]
 
     @task
-    def register_candidate(run_id: str) -> dict:
+    def register_candidate(candidate_run_id: str) -> dict:
         import mlflow
 
         from training import core
 
-        mv = mlflow.register_model(f"runs:/{run_id}/model", core.REGISTERED_MODEL)
-        core.set_candidate_alias(run_id)
+        mv = mlflow.register_model(f"runs:/{candidate_run_id}/model", core.REGISTERED_MODEL)
+        core.set_candidate_alias(candidate_run_id)
         log.info("registered %s v%s with alias 'candidate' (production promotion stays manual)", mv.name, mv.version)
         return {"model": mv.name, "version": str(mv.version), "alias": "candidate"}
 

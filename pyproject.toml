@@ -1,0 +1,24 @@
+[project]
+name = "mlops-agent"
+version = "1.0.0"
+description = "Production-style MLOps AI agent: DVC + MLflow + Airflow 3 + Kubernetes"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 130
+target-version = "py312"
+extend-exclude = [".venv", ".dvc-storage", "mlruns"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "SIM"]
+ignore = ["S101", "S603", "S607", "B008", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "E501"]
+"dags/*" = ["S"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]

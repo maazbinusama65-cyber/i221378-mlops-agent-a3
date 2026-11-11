@@ -1,0 +1,47 @@
+{
+  "tool": "airflow_failed_tasks",
+  "status": "ok",
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "failed_run": {
+      "dag_run_id": "manual__2026-11-11T20:48:00.526165+00:00_kH3sVoYF",
+      "state": "failed",
+      "run_type": "manual",
+      "logical_date": null,
+      "start_date": "2026-11-11T20:48:03.451831Z",
+      "end_date": "2026-11-11T20:50:37.324339Z",
+      "triggered_by": "rest_api",
+      "conf": {}
+    },
+    "failed_tasks": [
+      {
+        "task_id": "register_candidate",
+        "state": "failed",
+        "try_number": 3,
+        "max_tries": 2,
+        "duration_s": 0.7,
+        "log_tail": [
+          "::group::Log message source details",
+          "::endgroup::",
+          "20:50:36 info DAG bundles loaded: dags-folder",
+          "20:50:36 info Filling up the DagBag from /opt/airflow/project/dags/training_pipeline.py",
+          "20:50:36 error Task failed with exception",
+          "EXCEPTION ValueError: The key 'run_id' in args is a part of kwargs and therefore reserved."
+        ]
+      }
+    ],
+    "root_cause_task": "register_candidate",
+    "all_tasks": [
+      "validate_data=success",
+      "preprocess=success",
+      "train_model=success",
+      "evaluate_and_log=success",
+      "quality_gate=success",
+      "register_candidate=failed"
+    ]
+  },
+  "error": null,
+  "duration_ms": 149.3,
+  "request_id": "3340dedb94f2",
+  "evidence_id": "E1"
+}
