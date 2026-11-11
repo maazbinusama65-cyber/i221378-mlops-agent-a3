@@ -1,0 +1,9 @@
+outs:
+- md5: 557ced86054d3adf708339d59768c8c9
+  size: 933929
+  hash: md5
+  path: model.joblib
+meta:
+  mlflow_run_id: 9750c8125dc4409089d4cf1522fd1d72
+  dataset_version: v1
+  registry: churn-classifier v1 (alias production)

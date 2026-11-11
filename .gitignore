@@ -8,7 +8,6 @@ htmlcov/
 .env
 *.env.local
 .dvc-storage/
-/models/
 /data/processed/
 mlruns/
 mlflow-data/
