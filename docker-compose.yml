@@ -1,0 +1,65 @@
+# Local MLOps stack: MLflow tracking server, Airflow 3, and a single-node k3s Kubernetes cluster.
+#   docker compose up -d --build mlflow airflow
+#   docker compose --profile k8s up -d k3s        (see scripts/k8s-up.sh for image loading)
+name: mlops-agent
+
+services:
+  mlflow:
+    build:
+      context: .
+      dockerfile: infra/mlflow.Dockerfile
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - mlflow-data:/mlflow-data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      retries: 10
+
+  airflow:
+    build:
+      context: .
+      dockerfile: infra/airflow.Dockerfile
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/dags
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "admin:admin"
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/passwords.json
+      AIRFLOW__API_AUTH__JWT_EXPIRATION_TIME: "3600"
+      AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL: "10"
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:-change-me-local}
+    volumes:
+      - .:/opt/airflow/project
+      - airflow-home:/opt/airflow/state
+    command:
+      - bash
+      - -c
+      - |
+        echo "{\"admin\": \"$$AIRFLOW_ADMIN_PASSWORD\"}" > /opt/airflow/passwords.json
+        exec airflow standalone
+
+  # Single-node Kubernetes (k3s) used as the real cluster for the Kubernetes agent tools.
+  k3s:
+    image: rancher/k3s:v1.31.4-k3s1
+    profiles: ["k8s"]
+    privileged: true
+    command: server --disable traefik --disable metrics-server --write-kubeconfig-mode 644 --tls-san 127.0.0.1
+    tmpfs: ["/run", "/var/run"]
+    ports:
+      - "127.0.0.1:6443:6443"
+    volumes:
+      - k3s-data:/var/lib/rancher/k3s
+      - ./infra:/output
+
+volumes:
+  mlflow-data:
+  airflow-home:
+  k3s-data:
