@@ -1,0 +1,108 @@
+{
+  "scenario": "F3c_k8s_recovery_check",
+  "question": "Is the prediction API healthy again?",
+  "request_id": "43cfe0844b40",
+  "llm_steps": 2,
+  "answer": "**Known facts**\n- The `churn‑api` deployment in namespace `mlops-agent` reports **desired = 2**, **ready = 2**, and **healthy = true**【E1】.  \n- No pods are listed as “unhealthy” in the current pod list.  \n- A series of recent **warning events** are present, all related to **readiness and liveness probe failures** (connection refused, HTTP 503) on several pod instances, with counts ranging from 1 to 21 and ages from ~30 s to ~3 min【E1】.  \n- The diagnostic tool’s “likely causes” field states **“no fault detected in pod/probe state”**, indicating no definitive root‑cause identified yet【E1】.\n\n**Uncertainties**\n- The presence of multiple probe‑failure warnings suggests the API may still be experiencing intermittent connectivity issues despite the overall “healthy” flag.  \n- No log excerpts or deeper pod‑level diagnostics were retrieved, so the exact reason for the probe failures (e.g., application startup delay, misconfiguration, resource pressure) remains unknown.  \n\n**Recommended actions**\n- **Investigate the probe failures**: fetch recent logs for the affected pods (e.g., `k8s_pod_logs` for pods `churn-api-…`) to determine why readiness/liveness probes are failing.  \n- **Confirm endpoint responsiveness**: manually curl the `/ready` and `/health` endpoints of the service to see if they return successful responses.  \n- If the warnings persist, consider **restarting the deployment** (via `k8s_restart_deployment`) after confirming with the user, or **scaling** the deployment to allow new pods to replace potentially stuck ones.  ",
+  "pending_confirmations": [],
+  "operator_notes": [
+    "configmap/churn-api-config configured",
+    "{\"restarted\": \"churn-api\", \"namespace\": \"mlops-agent\", \"method\": \"rolling restart via pod-template annotation\"}"
+  ],
+  "tool_evidence": [
+    {
+      "tool": "k8s_diagnose_deployment",
+      "status": "ok",
+      "data": {
+        "deployment": "churn-api",
+        "desired": 2,
+        "ready": 2,
+        "healthy": true,
+        "pods_total": 2,
+        "unhealthy_pods": [],
+        "warning_events": [
+          {
+            "type": "Warning",
+            "reason": "Unhealthy",
+            "object": "Pod/churn-api-5f464dcf4f-f95dm",
+            "message": "Readiness probe failed: Get \"http://10.42.0.8:8000/ready\": dial tcp 10.42.0.8:8000: connect: connection refused",
+            "count": 2,
+            "age": "0m31s",
+            "age_s": 31
+          },
+          {
+            "type": "Warning",
+            "reason": "Unhealthy",
+            "object": "Pod/churn-api-5f464dcf4f-f95dm",
+            "message": "Liveness probe failed: Get \"http://10.42.0.8:8000/health\": dial tcp 10.42.0.8:8000: connect: connection refused",
+            "count": 1,
+            "age": "0m31s",
+            "age_s": 31
+          },
+          {
+            "type": "Warning",
+            "reason": "Unhealthy",
+            "object": "Pod/churn-api-5f464dcf4f-p49ls",
+            "message": "Readiness probe failed: Get \"http://10.42.0.9:8000/ready\": dial tcp 10.42.0.9:8000: connect: connection refused",
+            "count": 2,
+            "age": "0m31s",
+            "age_s": 31
+          },
+          {
+            "type": "Warning",
+            "reason": "Unhealthy",
+            "object": "Pod/churn-api-5f464dcf4f-p49ls",
+            "message": "Liveness probe failed: Get \"http://10.42.0.9:8000/health\": dial tcp 10.42.0.9:8000: connect: connection refused",
+            "count": 1,
+            "age": "0m31s",
+            "age_s": 31
+          },
+          {
+            "type": "Warning",
+            "reason": "Unhealthy",
+            "object": "Pod/churn-api-74569b98d5-7gnsv",
+            "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+            "count": 21,
+            "age": "1m24s",
+            "age_s": 84
+          },
+          {
+            "type": "Warning",
+            "reason": "Unhealthy",
+            "object": "Pod/churn-api-74569b98d5-mwwwb",
+            "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+            "count": 21,
+            "age": "1m24s",
+            "age_s": 84
+          },
+          {
+            "type": "Warning",
+            "reason": "Unhealthy",
+            "object": "Pod/churn-api-74569b98d5-255nn",
+            "message": "Readiness probe failed: Get \"http://10.42.0.4:8000/ready\": dial tcp 10.42.0.4:8000: connect: connection refused",
+            "count": 7,
+            "age": "2m59s",
+            "age_s": 179
+          },
+          {
+            "type": "Warning",
+            "reason": "Unhealthy",
+            "object": "Pod/churn-api-74569b98d5-7gnsv",
+            "message": "Readiness probe failed: Get \"http://10.42.0.6:8000/ready\": dial tcp 10.42.0.6:8000: connect: connection refused",
+            "count": 1,
+            "age": "3m4s",
+            "age_s": 184
+          }
+        ],
+        "older_warning_events_ignored": 4,
+        "likely_causes": [
+          "no fault detected in pod/probe state"
+        ]
+      },
+      "error": null,
+      "duration_ms": 141.3,
+      "request_id": "43cfe0844b40",
+      "evidence_id": "E1"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "tool": "k8s_diagnose_deployment",
+  "status": "ok",
+  "data": {
+    "deployment": "churn-api",
+    "desired": 2,
+    "ready": 2,
+    "healthy": true,
+    "pods_total": 2,
+    "unhealthy_pods": [],
+    "warning_events": [],
+    "older_warning_events_ignored": 12,
+    "likely_causes": [
+      "no fault detected in pod/probe state"
+    ]
+  },
+  "error": null,
+  "duration_ms": 17197.9,
+  "request_id": "c4470a9c6811",
+  "evidence_id": "E10"
+}

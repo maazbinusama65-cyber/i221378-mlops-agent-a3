@@ -1,0 +1,29 @@
+{
+  "tool": "dvc_compare_versions",
+  "status": "ok",
+  "data": {
+    "path": "data/churn.csv",
+    "a": {
+      "rev": "data-v1",
+      "md5": "b776848b13770831102c4156b41f0cdd",
+      "size": 33261,
+      "version": "v1",
+      "description": "Synthetic churn dataset, 1500 rows (seed 11)"
+    },
+    "b": {
+      "rev": "data-v2",
+      "md5": "e2e91db55e872ca729d8455cef604342",
+      "size": 66525,
+      "version": "v2",
+      "description": "Synthetic churn dataset, 3000 rows (seed 22, drifted)"
+    },
+    "content_changed": true,
+    "size_delta_bytes": 33264,
+    "dvc_diff": null,
+    "summary": "data-v1 (v1) -> data-v2 (v2): data content differs"
+  },
+  "error": null,
+  "duration_ms": 3348.7,
+  "request_id": "83e7098c2ecc",
+  "evidence_id": "E2"
+}

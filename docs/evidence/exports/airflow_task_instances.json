@@ -1,0 +1,67 @@
+{
+  "tool": "airflow_task_instances",
+  "status": "ok",
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "run": {
+      "dag_run_id": "manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c",
+      "state": "failed",
+      "run_type": "manual",
+      "logical_date": null,
+      "start_date": "2026-11-12T06:15:58.547467Z",
+      "end_date": "2026-11-12T06:17:36.404269Z",
+      "triggered_by": "rest_api",
+      "conf": {
+        "min_f1": 0.99
+      }
+    },
+    "tasks": [
+      {
+        "task_id": "validate_data",
+        "state": "success",
+        "try_number": 1,
+        "max_tries": 2,
+        "duration_s": -40.0
+      },
+      {
+        "task_id": "preprocess",
+        "state": "success",
+        "try_number": 1,
+        "max_tries": 2,
+        "duration_s": 19.2
+      },
+      {
+        "task_id": "train_model",
+        "state": "success",
+        "try_number": 1,
+        "max_tries": 2,
+        "duration_s": 44.2
+      },
+      {
+        "task_id": "evaluate_and_log",
+        "state": "success",
+        "try_number": 1,
+        "max_tries": 2,
+        "duration_s": 42.4
+      },
+      {
+        "task_id": "quality_gate",
+        "state": "failed",
+        "try_number": 1,
+        "max_tries": 2,
+        "duration_s": 1.8
+      },
+      {
+        "task_id": "register_candidate",
+        "state": "upstream_failed",
+        "try_number": 0,
+        "max_tries": 2,
+        "duration_s": null
+      }
+    ]
+  },
+  "error": null,
+  "duration_ms": 149.8,
+  "request_id": "b287a01f1536",
+  "evidence_id": "E9"
+}

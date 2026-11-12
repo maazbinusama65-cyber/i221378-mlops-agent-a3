@@ -1,0 +1,151 @@
+{
+  "tool": "mlflow_compare_runs",
+  "status": "ok",
+  "data": {
+    "runs": [
+      {
+        "run_id": "853134393bcc41d4b4a6f0d4fcf7338f",
+        "name": "airflow-manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c",
+        "experiment_id": "2",
+        "status": "FINISHED",
+        "started": "2026-11-12T06:17:03+00:00",
+        "metrics": {
+          "f1": 0.82,
+          "precision": 0.8849,
+          "recall": 0.764,
+          "roc_auc": 0.9651,
+          "train_f1": 0.9111
+        },
+        "dataset_version": "v2",
+        "algorithm": "random_forest",
+        "quality_gate": "failed",
+        "params": {
+          "algorithm": "random_forest",
+          "n_estimators": "200",
+          "max_depth": "8"
+        }
+      },
+      {
+        "run_id": "e868c9c7ade34e948c66c8fd0c89f793",
+        "name": "airflow-manual__2026-11-12T06:09:34.860683+00:00_1hNhlUrr",
+        "experiment_id": "2",
+        "status": "FINISHED",
+        "started": "2026-11-12T06:10:48+00:00",
+        "metrics": {
+          "f1": 0.82,
+          "precision": 0.8849,
+          "recall": 0.764,
+          "roc_auc": 0.9651,
+          "train_f1": 0.9111
+        },
+        "dataset_version": "v2",
+        "algorithm": "random_forest",
+        "quality_gate": "passed",
+        "params": {
+          "algorithm": "random_forest",
+          "n_estimators": "200",
+          "max_depth": "8"
+        }
+      },
+      {
+        "run_id": "3997a879e76841b7b2f3f7f07ccd9b2a",
+        "name": "airflow-manual__2026-11-11T20:48:00.526165+00:00_kH3sVoYF",
+        "experiment_id": "2",
+        "status": "FINISHED",
+        "started": "2026-11-11T20:49:36+00:00",
+        "metrics": {
+          "f1": 0.82,
+          "precision": 0.8849,
+          "recall": 0.764,
+          "roc_auc": 0.9651,
+          "train_f1": 0.9111
+        },
+        "dataset_version": "v2",
+        "algorithm": "random_forest",
+        "quality_gate": "passed",
+        "params": {
+          "algorithm": "random_forest",
+          "n_estimators": "200",
+          "max_depth": "8"
+        }
+      },
+      {
+        "run_id": "220dc2ed0f514d7cb7e029830a090d9f",
+        "name": "v2-logreg-balanced",
+        "experiment_id": "2",
+        "status": "FINISHED",
+        "started": "2026-11-11T20:15:18+00:00",
+        "metrics": {
+          "f1": 0.7749,
+          "precision": 0.6697,
+          "recall": 0.9193,
+          "roc_auc": 0.9622,
+          "train_f1": 0.7818
+        },
+        "dataset_version": "v2",
+        "algorithm": "logistic_regression",
+        "quality_gate": "passed",
+        "params": {
+          "algorithm": "logistic_regression",
+          "n_estimators": "100",
+          "C": "2.0",
+          "class_weight": "balanced"
+        }
+      },
+      {
+        "run_id": "07e29a5f75a641208ad51abcfcda163b",
+        "name": "v2-rf-overfit",
+        "experiment_id": "2",
+        "status": "FINISHED",
+        "started": "2026-11-11T20:14:39+00:00",
+        "metrics": {
+          "f1": 0.8239,
+          "precision": 0.8857,
+          "recall": 0.7702,
+          "roc_auc": 0.9643,
+          "train_f1": 1.0
+        },
+        "dataset_version": "v2",
+        "algorithm": "random_forest",
+        "quality_gate": "passed",
+        "params": {
+          "algorithm": "random_forest",
+          "n_estimators": "300",
+          "C": "1.0"
+        }
+      }
+    ],
+    "winner_per_metric": {
+      "f1": {
+        "run_id": "07e29a5f75a641208ad51abcfcda163b",
+        "name": "v2-rf-overfit",
+        "value": 0.8239
+      },
+      "precision": {
+        "run_id": "07e29a5f75a641208ad51abcfcda163b",
+        "name": "v2-rf-overfit",
+        "value": 0.8857
+      },
+      "recall": {
+        "run_id": "220dc2ed0f514d7cb7e029830a090d9f",
+        "name": "v2-logreg-balanced",
+        "value": 0.9193
+      },
+      "roc_auc": {
+        "run_id": "853134393bcc41d4b4a6f0d4fcf7338f",
+        "name": "airflow-manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c",
+        "value": 0.9651
+      },
+      "train_f1": {
+        "run_id": "07e29a5f75a641208ad51abcfcda163b",
+        "name": "v2-rf-overfit",
+        "value": 1.0
+      }
+    },
+    "note": "metrics come from different datasets if dataset_version differs; compare with care"
+  },
+  "error": null,
+  "duration_ms": 237.7,
+  "request_id": "58fd3582504d",
+  "evidence_id": "E5"
+}

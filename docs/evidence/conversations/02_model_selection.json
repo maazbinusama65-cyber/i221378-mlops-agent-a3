@@ -1,0 +1,165 @@
+{
+  "scenario": "02_model_selection",
+  "question": "Compare the last five training runs and recommend the best candidate based on F1 score.",
+  "request_id": "e78d00c85a5c",
+  "llm_steps": 2,
+  "answer": "**Known facts**\n- The last five training runs (all on dataset version **v2**) and their F1 scores are:\n  - `07e29a5f75a641208ad51abcfcda163b` (**v2‑rf‑overfit**) – F1 = 0.8239, train F1 = 1.0【E1】  \n  - `3997a879e76841b7b2f3f7f07ccd9b2a` (**airflow‑manual**) – F1 = 0.82, train F1 = 0.9111【E1】  \n  - `a70be0e289f044729a69787759554266` (**v2‑rf‑d6**) – F1 = 0.7986, train F1 = 0.8507【E1】  \n  - `2351a0f526394032a95674afe4630d6e` (**v2‑rf‑d10‑balanced**) – F1 = 0.8024, train F1 = 0.9545【E1】  \n  - `220dc2ed0f514d7cb7e029830a090d9f` (**v2‑logreg‑balanced**) – F1 = 0.7749, train F1 = 0.7818【E1】\n\n- The tool’s automatic “winner per metric” identifies **run 07e29a5f75a641208ad51abcfcda163b** as the top F1 performer【E1】.\n\n**Uncertainties / Caveats**\n- The highest‑F1 run (**v2‑rf‑overfit**) shows a perfect training F1 (1.0) while test F1 is only 0.8239, indicating possible over‑fitting. The quality gate still passed, but the metric gap is a warning sign.\n- No explicit production‑readiness assessment (e.g., latency, resource usage) is provided; the recommendation is based solely on the F1 metric.\n\n**Recommended actions**\n- **Primary candidate:** Consider **run 07e29a5f75a641208ad51abcfcda163b** (v2‑rf‑overfit) as the best model for pure F1 performance, but validate its generalisation (e.g., cross‑validation, hold‑out set) before promotion.\n- **Alternative with better generalisation:** If over‑fitting risk is a concern, the next best F1 is **run 3997a879e76841b7b2f3f7f07ccd9b2a** (airflow‑manual) with F1 = 0.82 and a smaller train‑test gap (train F1 = 0.9111). This may be a safer production candidate.",
+  "pending_confirmations": [],
+  "operator_notes": [],
+  "tool_evidence": [
+    {
+      "tool": "mlflow_compare_runs",
+      "status": "ok",
+      "data": {
+        "runs": [
+          {
+            "run_id": "3997a879e76841b7b2f3f7f07ccd9b2a",
+            "name": "airflow-manual__2026-11-11T20:48:00.526165+00:00_kH3sVoYF",
+            "experiment_id": "2",
+            "status": "FINISHED",
+            "started": "2026-11-11T20:49:36+00:00",
+            "metrics": {
+              "f1": 0.82,
+              "precision": 0.8849,
+              "recall": 0.764,
+              "roc_auc": 0.9651,
+              "train_f1": 0.9111
+            },
+            "dataset_version": "v2",
+            "algorithm": "random_forest",
+            "quality_gate": "passed",
+            "params": {
+              "algorithm": "random_forest",
+              "n_estimators": "200",
+              "max_depth": "8"
+            }
+          },
+          {
+            "run_id": "220dc2ed0f514d7cb7e029830a090d9f",
+            "name": "v2-logreg-balanced",
+            "experiment_id": "2",
+            "status": "FINISHED",
+            "started": "2026-11-11T20:15:18+00:00",
+            "metrics": {
+              "f1": 0.7749,
+              "precision": 0.6697,
+              "recall": 0.9193,
+              "roc_auc": 0.9622,
+              "train_f1": 0.7818
+            },
+            "dataset_version": "v2",
+            "algorithm": "logistic_regression",
+            "quality_gate": "passed",
+            "params": {
+              "algorithm": "logistic_regression",
+              "n_estimators": "100",
+              "C": "2.0",
+              "class_weight": "balanced"
+            }
+          },
+          {
+            "run_id": "07e29a5f75a641208ad51abcfcda163b",
+            "name": "v2-rf-overfit",
+            "experiment_id": "2",
+            "status": "FINISHED",
+            "started": "2026-11-11T20:14:39+00:00",
+            "metrics": {
+              "f1": 0.8239,
+              "precision": 0.8857,
+              "recall": 0.7702,
+              "roc_auc": 0.9643,
+              "train_f1": 1.0
+            },
+            "dataset_version": "v2",
+            "algorithm": "random_forest",
+            "quality_gate": "passed",
+            "params": {
+              "algorithm": "random_forest",
+              "n_estimators": "300",
+              "C": "1.0"
+            }
+          },
+          {
+            "run_id": "2351a0f526394032a95674afe4630d6e",
+            "name": "v2-rf-d10-balanced",
+            "experiment_id": "2",
+            "status": "FINISHED",
+            "started": "2026-11-11T20:14:00+00:00",
+            "metrics": {
+              "f1": 0.8024,
+              "precision": 0.7746,
+              "recall": 0.8323,
+              "roc_auc": 0.9681,
+              "train_f1": 0.9545
+            },
+            "dataset_version": "v2",
+            "algorithm": "random_forest",
+            "quality_gate": "passed",
+            "params": {
+              "algorithm": "random_forest",
+              "n_estimators": "200",
+              "max_depth": "10",
+              "C": "1.0",
+              "class_weight": "balanced"
+            }
+          },
+          {
+            "run_id": "a70be0e289f044729a69787759554266",
+            "name": "v2-rf-d6",
+            "experiment_id": "2",
+            "status": "FINISHED",
+            "started": "2026-11-11T20:13:19+00:00",
+            "metrics": {
+              "f1": 0.7986,
+              "precision": 0.8864,
+              "recall": 0.7267,
+              "roc_auc": 0.9636,
+              "train_f1": 0.8507
+            },
+            "dataset_version": "v2",
+            "algorithm": "random_forest",
+            "quality_gate": "passed",
+            "params": {
+              "algorithm": "random_forest",
+              "n_estimators": "200",
+              "max_depth": "6",
+              "C": "1.0"
+            }
+          }
+        ],
+        "winner_per_metric": {
+          "f1": {
+            "run_id": "07e29a5f75a641208ad51abcfcda163b",
+            "name": "v2-rf-overfit",
+            "value": 0.8239
+          },
+          "precision": {
+            "run_id": "a70be0e289f044729a69787759554266",
+            "name": "v2-rf-d6",
+            "value": 0.8864
+          },
+          "recall": {
+            "run_id": "220dc2ed0f514d7cb7e029830a090d9f",
+            "name": "v2-logreg-balanced",
+            "value": 0.9193
+          },
+          "roc_auc": {
+            "run_id": "2351a0f526394032a95674afe4630d6e",
+            "name": "v2-rf-d10-balanced",
+            "value": 0.9681
+          },
+          "train_f1": {
+            "run_id": "07e29a5f75a641208ad51abcfcda163b",
+            "name": "v2-rf-overfit",
+            "value": 1.0
+          }
+        },
+        "note": "metrics come from different datasets if dataset_version differs; compare with care"
+      },
+      "error": null,
+      "duration_ms": 593.6,
+      "request_id": "e78d00c85a5c",
+      "evidence_id": "E1"
+    }
+  ]
+}

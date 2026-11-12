@@ -11,7 +11,6 @@ from __future__ import annotations
 import html
 import os
 import subprocess
-import sys
 from pathlib import Path
 
 from playwright.sync_api import Page, sync_playwright
@@ -26,8 +25,8 @@ TERMINALS: dict[str, list[list[str]]] = {
         ["git", "tag", "--list", "data-v*", "-n1"],
         ["git", "log", "--oneline", "--decorate", "-8", "--", "data/churn.csv.dvc"],
         ["cat", "data/churn.csv.dvc"],
-        [sys.executable, "-m", "dvc", "diff", "data-v1", "data-v2"],
-        [sys.executable, "-m", "dvc", "status"],
+        ["dvc", "diff", "data-v1", "data-v2"],
+        ["dvc", "status"],
     ],
     "kubernetes_state": [
         ["kubectl", "-n", "mlops-agent", "get", "deploy,pods,svc,cm", "-o", "wide"],
@@ -40,7 +39,7 @@ def terminal_png(page: Page, name: str, commands: list[list[str]]) -> None:
     blocks = []
     for cmd in commands:
         proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=False, timeout=120, encoding="utf-8")  # noqa: S603
-        shown = " ".join(["python -m dvc" if c == sys.executable else c for c in cmd[:1] + cmd[1:]]).replace("python -m dvc -m dvc", "dvc")
+        shown = " ".join(cmd)
         blocks.append(f'<div class="cmd">$ {html.escape(shown)}</div><pre>{html.escape((proc.stdout + proc.stderr).strip())}</pre>')
     page.set_content(
         "<html><body style='background:#0f1419;color:#d7dde4;font:13px/1.45 Consolas,monospace;padding:20px;width:1500px'>"
@@ -58,24 +57,27 @@ def main() -> None:
         for name, cmds in TERMINALS.items():
             terminal_png(page, name, cmds)
 
-        page.goto(f"{MLFLOW}/#/experiments/2", wait_until="networkidle")
-        page.wait_for_timeout(2500)
-        page.screenshot(path=str(OUT / "mlflow_experiment_runs.png"))
-        page.goto(f"{MLFLOW}/#/models/churn-classifier", wait_until="networkidle")
-        page.wait_for_timeout(2500)
-        page.screenshot(path=str(OUT / "mlflow_model_registry.png"))
+        def shot(url: str, name: str, ctx=None) -> None:
+            tab = ctx.new_page() if ctx else browser.new_page(viewport={"width": 1500, "height": 900})
+            tab.goto(url, wait_until="load")
+            tab.wait_for_timeout(9000)
+            tab.screenshot(path=str(OUT / f"{name}.png"))
+            tab.close()
+            print("wrote", name)
 
-        page.goto(f"{AIRFLOW}/", wait_until="networkidle")
-        page.fill("input[name=username]", os.environ.get("AIRFLOW_USERNAME", "admin"))
-        page.fill("input[name=password]", os.environ["AIRFLOW_PASSWORD"])
-        page.click("button[type=submit]")
-        page.wait_for_timeout(3000)
-        page.goto(f"{AIRFLOW}/dags/churn_training_pipeline/runs", wait_until="networkidle")
-        page.wait_for_timeout(3000)
-        page.screenshot(path=str(OUT / "airflow_dag_runs.png"))
-        page.goto(f"{AIRFLOW}/dags/churn_training_pipeline/graph", wait_until="networkidle")
-        page.wait_for_timeout(3000)
-        page.screenshot(path=str(OUT / "airflow_dag_graph.png"))
+        shot(f"{MLFLOW}/#/experiments/2/runs", "mlflow_experiment_runs")
+        shot(f"{MLFLOW}/#/models/churn-classifier", "mlflow_model_registry")
+
+        ctx = browser.new_context(viewport={"width": 1500, "height": 900})
+        login = ctx.new_page()
+        login.goto(f"{AIRFLOW}/", wait_until="load")
+        login.wait_for_timeout(2000)
+        login.fill("input[name=username]", os.environ.get("AIRFLOW_USERNAME", "admin"))
+        login.fill("input[name=password]", os.environ["AIRFLOW_PASSWORD"])
+        login.click("button[type=submit]")
+        login.wait_for_timeout(3000)
+        login.close()
+        shot(f"{AIRFLOW}/dags/churn_training_pipeline/runs", "airflow_dag_runs", ctx)
         browser.close()
 
 

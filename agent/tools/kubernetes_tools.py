@@ -26,6 +26,13 @@ from kubernetes import client, config
 REQUEST_TIMEOUT = (3.0, 10.0)  # connect, read
 
 
+RECENT_EVENT_WINDOW_S = 900  # diagnosis only treats warning events from the last 15 minutes as current
+
+
+def _age_s(ts: datetime | None) -> int | None:
+    return None if ts is None else int((datetime.now(UTC) - ts).total_seconds())
+
+
 def _age(ts: datetime | None) -> str | None:
     if ts is None:
         return None
@@ -159,6 +166,7 @@ class K8sTools:
         return {"namespace": args.namespace, "events": [{
             "type": e.type, "reason": e.reason, "object": f"{e.involved_object.kind}/{e.involved_object.name}",
             "message": (e.message or "")[:220], "count": e.count, "age": _age(e.last_timestamp or e.metadata.creation_timestamp),
+            "age_s": _age_s(e.last_timestamp or e.metadata.creation_timestamp),
         } for e in items[:15]]}
 
     def app_version(self, args: K8sDeploymentArgs) -> dict[str, Any]:
@@ -194,10 +202,13 @@ class K8sTools:
                 entry["log_tail"] = []
             unhealthy.append(entry)
             hints.extend(self._hints(p, entry))
-        warnings = self.events(K8sEventsArgs(namespace=ns, warnings_only=True))["events"][:8]
+        all_warnings = self.events(K8sEventsArgs(namespace=ns, warnings_only=True))["events"]
+        warnings = [e for e in all_warnings if (e["age_s"] or 0) <= RECENT_EVENT_WINDOW_S][:8]
+        older_warnings = len(all_warnings) - len(warnings)
         return {
             "deployment": args.deployment, "desired": desired, "ready": ready, "healthy": desired > 0 and ready == desired,
             "pods_total": len(pods), "unhealthy_pods": unhealthy[:4], "warning_events": warnings,
+            "older_warning_events_ignored": older_warnings,
             "likely_causes": sorted(set(hints)) or ["no fault detected in pod/probe state"],
         }
 

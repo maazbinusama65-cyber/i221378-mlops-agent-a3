@@ -58,7 +58,9 @@ def churn_training_pipeline():
     def validate_data() -> dict:
         from training import core
 
-        data = PROJECT_ROOT / _params()["data_path"]
+        data = (PROJECT_ROOT / _params()["data_path"]).resolve()
+        if not data.is_relative_to((PROJECT_ROOT / "data").resolve()):
+            raise AirflowFailException(f"data_path must stay inside the project data/ directory (got {data})")
         try:
             report = core.validate_dataset(data)
         except core.ValidationError as exc:

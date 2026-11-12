@@ -18,3 +18,5 @@ logs/
 .idea/
 .vscode/
 .agent-sandbox/
+scenarios-run.log
+data/failure_injection/

@@ -1,0 +1,47 @@
+{
+  "tool": "airflow_dag_runs",
+  "status": "ok",
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "runs": [
+      {
+        "dag_run_id": "manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c",
+        "state": "failed",
+        "run_type": "manual",
+        "logical_date": null,
+        "start_date": "2026-11-12T06:15:58.547467Z",
+        "end_date": "2026-11-12T06:17:36.404269Z",
+        "triggered_by": "rest_api",
+        "conf": {
+          "min_f1": 0.99
+        }
+      },
+      {
+        "dag_run_id": "manual__2026-11-12T06:14:50.696178+00:00_LbTyqV3j",
+        "state": "failed",
+        "run_type": "manual",
+        "logical_date": null,
+        "start_date": "2026-11-12T06:14:51.874423Z",
+        "end_date": "2026-11-12T06:15:03.113062Z",
+        "triggered_by": "rest_api",
+        "conf": {
+          "data_path": "data/failure_injection/churn_corrupt.csv"
+        }
+      },
+      {
+        "dag_run_id": "manual__2026-11-12T06:09:34.860683+00:00_1hNhlUrr",
+        "state": "success",
+        "run_type": "manual",
+        "logical_date": null,
+        "start_date": "2026-11-12T06:09:35.281842Z",
+        "end_date": "2026-11-12T06:11:32.114710Z",
+        "triggered_by": "rest_api",
+        "conf": {}
+      }
+    ]
+  },
+  "error": null,
+  "duration_ms": 82.7,
+  "request_id": "8a2ee78bebfe",
+  "evidence_id": "E8"
+}

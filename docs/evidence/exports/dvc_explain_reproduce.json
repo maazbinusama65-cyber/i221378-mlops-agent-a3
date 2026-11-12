@@ -1,0 +1,26 @@
+{
+  "tool": "dvc_explain_reproduce",
+  "status": "ok",
+  "data": {
+    "rev": "data-v1",
+    "version": "v1",
+    "expected_md5": "b776848b13770831102c4156b41f0cdd",
+    "non_destructive_alternative": "dvc get . data/churn.csv --rev data-v1 -o <dir>",
+    "steps": [
+      "git checkout data-v1 -- data/churn.csv.dvc      # restore the recorded dataset pointer",
+      "dvc checkout data/churn.csv.dvc                    # materialise data from the DVC cache (or `dvc pull` first)",
+      "md5sum data/churn.csv                              # must equal b776848b13770831102c4156b41f0cdd",
+      "git checkout HEAD -- data/churn.csv.dvc && dvc checkout data/churn.csv.dvc   # return to the current dataset"
+    ],
+    "in_remote": true,
+    "verification": {
+      "exported_to": ".agent-sandbox/data-v1/churn.csv",
+      "actual_md5": "b776848b13770831102c4156b41f0cdd",
+      "matches_recorded_md5": true
+    }
+  },
+  "error": null,
+  "duration_ms": 15312.2,
+  "request_id": "eee2a79fcae9",
+  "evidence_id": "E3"
+}

@@ -1,0 +1,188 @@
+{
+  "scenario": "F1_airflow_data_validation_failure",
+  "question": "The last training pipeline run did not succeed. Which task failed, why, and did anything downstream get promoted?",
+  "request_id": "c84bd5638e4a",
+  "llm_steps": 4,
+  "answer": "**Known facts**\n- The most recent DAG run (`manual__2026-11-12T06:14:50.696178+00:00_LbTyqV3j`) ended in **failed** state. [E1]\n- The failure originated in the **`validate_data`** task, which raised an `AirflowFailException` because the data contained **334 null values** in feature/target columns. [E2]\n- All downstream tasks (`preprocess`, `train_model`, `evaluate_and_log`, `quality_gate`, `register_candidate`) were marked **`upstream_failed`**, meaning they never executed. [E2]\n- The model registry shows the latest **candidate** model (version 4) was created by the **previous successful run** (`manual__2026-11-12T06:09:34.860683+00:00_1hNhlUrr`). No new candidate or production version was registered by the failed run. [E3]\n\n**Uncertainties**\n- None; all required information is present in the retrieved logs and model registry.\n\n**Recommended actions**\n- Fix the data quality issue (e.g., clean or replace the 334 null values) before re‑running the pipeline.  \n- After a successful validation, the downstream tasks will run and the new model can be promoted (candidate → production) according to the existing quality‑gate logic.  ",
+  "pending_confirmations": [],
+  "operator_notes": [
+    "injected: DAG run with a corrupted dataset (null tenure values)",
+    "run state=failed"
+  ],
+  "tool_evidence": [
+    {
+      "tool": "airflow_dag_runs",
+      "status": "ok",
+      "data": {
+        "dag_id": "churn_training_pipeline",
+        "runs": [
+          {
+            "dag_run_id": "manual__2026-11-12T06:14:50.696178+00:00_LbTyqV3j",
+            "state": "failed",
+            "run_type": "manual",
+            "logical_date": null,
+            "start_date": "2026-11-12T06:14:51.874423Z",
+            "end_date": "2026-11-12T06:15:03.113062Z",
+            "triggered_by": "rest_api",
+            "conf": {
+              "data_path": "data/failure_injection/churn_corrupt.csv"
+            }
+          },
+          {
+            "dag_run_id": "manual__2026-11-12T06:09:34.860683+00:00_1hNhlUrr",
+            "state": "success",
+            "run_type": "manual",
+            "logical_date": null,
+            "start_date": "2026-11-12T06:09:35.281842Z",
+            "end_date": "2026-11-12T06:11:32.114710Z",
+            "triggered_by": "rest_api",
+            "conf": {}
+          }
+        ]
+      },
+      "error": null,
+      "duration_ms": 85.9,
+      "request_id": "c84bd5638e4a",
+      "evidence_id": "E1"
+    },
+    {
+      "tool": "airflow_failed_tasks",
+      "status": "ok",
+      "data": {
+        "dag_id": "churn_training_pipeline",
+        "failed_run": {
+          "dag_run_id": "manual__2026-11-12T06:14:50.696178+00:00_LbTyqV3j",
+          "state": "failed",
+          "run_type": "manual",
+          "logical_date": null,
+          "start_date": "2026-11-12T06:14:51.874423Z",
+          "end_date": "2026-11-12T06:15:03.113062Z",
+          "triggered_by": "rest_api",
+          "conf": {
+            "data_path": "data/failure_injection/churn_corrupt.csv"
+          }
+        },
+        "failed_tasks": [
+          {
+            "task_id": "validate_data",
+            "state": "failed",
+            "try_number": 1,
+            "max_tries": 2,
+            "duration_s": 12.7,
+            "log_tail": [
+              "::group::Log message source details",
+              "::endgroup::",
+              "06:14:52 info DAG bundles loaded: dags-folder",
+              "06:14:52 info Filling up the DagBag from /opt/airflow/project/dags/training_pipeline.py",
+              "06:14:58 error DATA VALIDATION FAILED: 334 null values in feature/target columns",
+              "06:14:58 error Task failed with exception",
+              "EXCEPTION AirflowFailException: data validation failed: 334 null values in feature/target columns",
+              "EXCEPTION ValidationError: 334 null values in feature/target columns"
+            ]
+          },
+          {
+            "task_id": "preprocess",
+            "state": "upstream_failed",
+            "try_number": 0,
+            "max_tries": 2,
+            "duration_s": null
+          },
+          {
+            "task_id": "train_model",
+            "state": "upstream_failed",
+            "try_number": 0,
+            "max_tries": 2,
+            "duration_s": null
+          },
+          {
+            "task_id": "evaluate_and_log",
+            "state": "upstream_failed",
+            "try_number": 0,
+            "max_tries": 2,
+            "duration_s": null
+          },
+          {
+            "task_id": "quality_gate",
+            "state": "upstream_failed",
+            "try_number": 0,
+            "max_tries": 2,
+            "duration_s": null
+          },
+          {
+            "task_id": "register_candidate",
+            "state": "upstream_failed",
+            "try_number": 0,
+            "max_tries": 2,
+            "duration_s": null
+          }
+        ],
+        "root_cause_task": "validate_data",
+        "all_tasks": [
+          "validate_data=failed",
+          "preprocess=upstream_failed",
+          "train_model=upstream_failed",
+          "evaluate_and_log=upstream_failed",
+          "quality_gate=upstream_failed",
+          "register_candidate=upstream_failed"
+        ]
+      },
+      "error": null,
+      "duration_ms": 257.9,
+      "request_id": "c84bd5638e4a",
+      "evidence_id": "E2"
+    },
+    {
+      "tool": "mlflow_model_registry",
+      "status": "ok",
+      "data": {
+        "name": "churn-classifier",
+        "aliases": {
+          "candidate": "4",
+          "production": "1"
+        },
+        "versions": [
+          {
+            "version": "1",
+            "aliases": [
+              "production"
+            ],
+            "run_id": "9750c8125dc4409089d4cf1522fd1d72",
+            "run_name": "v1-rf-d6-registered",
+            "f1": 0.6667,
+            "dataset_version": "v1"
+          },
+          {
+            "version": "2",
+            "aliases": [],
+            "run_id": "07e29a5f75a641208ad51abcfcda163b",
+            "run_name": "v2-rf-overfit",
+            "f1": 0.8239,
+            "dataset_version": "v2"
+          },
+          {
+            "version": "3",
+            "aliases": [],
+            "run_id": "220dc2ed0f514d7cb7e029830a090d9f",
+            "run_name": "v2-logreg-balanced",
+            "f1": 0.7749,
+            "dataset_version": "v2"
+          },
+          {
+            "version": "4",
+            "aliases": [
+              "candidate"
+            ],
+            "run_id": "e868c9c7ade34e948c66c8fd0c89f793",
+            "run_name": "airflow-manual__2026-11-12T06:09:34.860683+00:00_1hNhlUrr",
+            "f1": 0.82,
+            "dataset_version": "v2"
+          }
+        ]
+      },
+      "error": null,
+      "duration_ms": 637.4,
+      "request_id": "c84bd5638e4a",
+      "evidence_id": "E3"
+    }
+  ]
+}

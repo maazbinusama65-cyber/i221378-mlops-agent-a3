@@ -1,0 +1,53 @@
+{
+  "tool": "mlflow_model_registry",
+  "status": "ok",
+  "data": {
+    "name": "churn-classifier",
+    "aliases": {
+      "candidate": "4",
+      "production": "1"
+    },
+    "versions": [
+      {
+        "version": "1",
+        "aliases": [
+          "production"
+        ],
+        "run_id": "9750c8125dc4409089d4cf1522fd1d72",
+        "run_name": "v1-rf-d6-registered",
+        "f1": 0.6667,
+        "dataset_version": "v1"
+      },
+      {
+        "version": "2",
+        "aliases": [],
+        "run_id": "07e29a5f75a641208ad51abcfcda163b",
+        "run_name": "v2-rf-overfit",
+        "f1": 0.8239,
+        "dataset_version": "v2"
+      },
+      {
+        "version": "3",
+        "aliases": [],
+        "run_id": "220dc2ed0f514d7cb7e029830a090d9f",
+        "run_name": "v2-logreg-balanced",
+        "f1": 0.7749,
+        "dataset_version": "v2"
+      },
+      {
+        "version": "4",
+        "aliases": [
+          "candidate"
+        ],
+        "run_id": "e868c9c7ade34e948c66c8fd0c89f793",
+        "run_name": "airflow-manual__2026-11-12T06:09:34.860683+00:00_1hNhlUrr",
+        "f1": 0.82,
+        "dataset_version": "v2"
+      }
+    ]
+  },
+  "error": null,
+  "duration_ms": 650.7,
+  "request_id": "6c2edf695c7b",
+  "evidence_id": "E6"
+}

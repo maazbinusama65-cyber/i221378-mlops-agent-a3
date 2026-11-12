@@ -103,3 +103,18 @@ def test_pod_logs_are_redacted_before_reaching_the_agent(k8s):
     core.read_namespaced_pod_log.return_value = "starting\nAUTH password=hunter2 Bearer abc.def.ghi"
     lines = registry.execute("k8s_pod_logs", {"pod": "p"}).data["lines"]
     assert "hunter2" not in " ".join(lines) and "abc.def.ghi" not in " ".join(lines)
+
+
+def test_diagnosis_ignores_stale_startup_warnings_for_a_healthy_deployment(k8s):
+    from datetime import timedelta
+
+    registry, core, apps = k8s
+    apps.read_namespaced_deployment.return_value = NS(
+        spec=NS(replicas=2, selector=NS(match_labels={"app": "churn-api"})), status=NS(ready_replicas=2))
+    core.list_namespaced_pod.return_value = NS(items=[make_pod("a"), make_pod("b")])
+    old = datetime.now(UTC) - timedelta(hours=1)
+    core.list_namespaced_event.return_value = NS(items=[NS(
+        type="Warning", reason="Unhealthy", message="Readiness probe failed: connection refused", count=7, last_timestamp=old,
+        event_time=None, metadata=NS(creation_timestamp=old), involved_object=NS(kind="Pod", name="a"))])
+    data = registry.execute("k8s_diagnose_deployment", {}).data
+    assert data["healthy"] is True and data["warning_events"] == [] and data["older_warning_events_ignored"] == 1

@@ -23,7 +23,7 @@ questions by calling **real tools** against four systems and refuses to state an
 | Kubernetes manifests | `kubernetes/` | 2 replicas, probes, resources, ClusterIP, ConfigMap |
 | Local stack | `docker-compose.yml`, `infra/` | MLflow, Airflow 3, k3s |
 | Dataset versioning | `data/*.dvc`, `.dvc/` | tags `data-v1`, `data-v2` |
-| Tests + CI | `tests/`, `.github/workflows/ci.yml` | 84 tests, 90 % coverage, all services mocked |
+| Tests + CI | `tests/`, `.github/workflows/ci.yml` | 114 tests, 90 % coverage, all services mocked |
 
 ## Prerequisites
 
@@ -103,7 +103,7 @@ ruff check .
 pytest --cov=agent --cov=training --cov=api --cov-report=term-missing --cov-fail-under=80
 ```
 
-84 tests cover: tool selection and multi-tool flows, mocked service outages (`unavailable`), timeouts, invalid requests,
+114 tests cover: tool selection and multi-tool flows, mocked service outages (`unavailable`), timeouts, invalid requests,
 unauthorized Kubernetes modifications, confirmation gating, "no invented results when a tool is down", citation grounding,
 retraining policy rules, DVC against a real temporary Git+DVC repo, the FastAPI probes, DAG data validation / quality gate,
 manifest requirements, and log redaction. GitHub Actions (`.github/workflows/ci.yml`) lints, runs the suite with an

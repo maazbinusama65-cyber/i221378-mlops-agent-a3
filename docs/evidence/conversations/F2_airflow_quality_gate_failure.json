@@ -1,0 +1,316 @@
+{
+  "scenario": "F2_airflow_quality_gate_failure",
+  "question": "The latest training run failed. Which task failed, what were the numbers, and was a model registered or promoted?",
+  "request_id": "692b68a43afc",
+  "llm_steps": 6,
+  "answer": "**Known facts**\n- The most recent Airflow DAG run (`manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c`) ended in **failed** state【E1】.  \n- The **failed task** was `quality_gate` (duration ≈ 1.8 s)【E2】. Its log shows: `f1 0.820 < min_f1 0.99` – the quality‑gate threshold was not met【E2】.  \n- The downstream task `register_candidate` was marked **upstream_failed** and therefore did not run【E2】.  \n- The corresponding MLflow run (`run_id: 853134393bcc41d4b4a6f0d4fcf7338f`) recorded the following metrics:  \n  - `f1 = 0.82`  \n  - `precision = 0.8849`  \n  - `recall = 0.764`  \n  - `roc_auc = 0.9651`  \n  - `train_f1 = 0.9111`  \n  - `accuracy = 0.928`  \n  - `test_rows = 750`【E4】.  \n- The run’s provenance shows the quality gate **failed** and no model was registered (`registered_versions` is empty)【E4】.  \n- The MLflow model registry for `churn-classifier` lists version 1 in **production**, version 4 as **candidate**, and no entry for the failed run’s ID【E5】.\n\n**Uncertainties**\n- None; all requested information is covered by the retrieved evidence.\n\n**Recommended actions**\n- Investigate the quality‑gate threshold (`min_f1 = 0.99`) – it is higher than the achieved test F1 (0.82). Consider lowering the threshold or improving model performance before re‑triggering the training DAG.  \n- If a new model should be promoted, ensure the quality gate passes and then trigger the `register_candidate` task (via the approved Airflow DAG) after confirming the desired parameters.",
+  "pending_confirmations": [],
+  "operator_notes": [
+    "injected: quality gate min_f1=0.99 (unreachable)",
+    "run state=failed"
+  ],
+  "tool_evidence": [
+    {
+      "tool": "airflow_dag_runs",
+      "status": "ok",
+      "data": {
+        "dag_id": "churn_training_pipeline",
+        "runs": [
+          {
+            "dag_run_id": "manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c",
+            "state": "failed",
+            "run_type": "manual",
+            "logical_date": null,
+            "start_date": "2026-11-12T06:15:58.547467Z",
+            "end_date": "2026-11-12T06:17:36.404269Z",
+            "triggered_by": "rest_api",
+            "conf": {
+              "min_f1": 0.99
+            }
+          },
+          {
+            "dag_run_id": "manual__2026-11-12T06:14:50.696178+00:00_LbTyqV3j",
+            "state": "failed",
+            "run_type": "manual",
+            "logical_date": null,
+            "start_date": "2026-11-12T06:14:51.874423Z",
+            "end_date": "2026-11-12T06:15:03.113062Z",
+            "triggered_by": "rest_api",
+            "conf": {
+              "data_path": "data/failure_injection/churn_corrupt.csv"
+            }
+          },
+          {
+            "dag_run_id": "manual__2026-11-12T06:09:34.860683+00:00_1hNhlUrr",
+            "state": "success",
+            "run_type": "manual",
+            "logical_date": null,
+            "start_date": "2026-11-12T06:09:35.281842Z",
+            "end_date": "2026-11-12T06:11:32.114710Z",
+            "triggered_by": "rest_api",
+            "conf": {}
+          }
+        ]
+      },
+      "error": null,
+      "duration_ms": 79.2,
+      "request_id": "692b68a43afc",
+      "evidence_id": "E1"
+    },
+    {
+      "tool": "airflow_failed_tasks",
+      "status": "ok",
+      "data": {
+        "dag_id": "churn_training_pipeline",
+        "failed_run": {
+          "dag_run_id": "manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c",
+          "state": "failed",
+          "run_type": "manual",
+          "logical_date": null,
+          "start_date": "2026-11-12T06:15:58.547467Z",
+          "end_date": "2026-11-12T06:17:36.404269Z",
+          "triggered_by": "rest_api",
+          "conf": {
+            "min_f1": 0.99
+          }
+        },
+        "failed_tasks": [
+          {
+            "task_id": "quality_gate",
+            "state": "failed",
+            "try_number": 1,
+            "max_tries": 2,
+            "duration_s": 1.8,
+            "log_tail": [
+              "::group::Log message source details",
+              "::endgroup::",
+              "06:17:34 info DAG bundles loaded: dags-folder",
+              "06:17:34 info Filling up the DagBag from /opt/airflow/project/dags/training_pipeline.py",
+              "06:17:35 error QUALITY GATE FAILED for run 853134393bcc41d4b4a6f0d4fcf7338f: f1 0.820 < min_f1 0.99",
+              "06:17:35 error Task failed with exception",
+              "EXCEPTION AirflowFailException: quality gate failed: f1 0.820 < min_f1 0.99"
+            ]
+          },
+          {
+            "task_id": "register_candidate",
+            "state": "upstream_failed",
+            "try_number": 0,
+            "max_tries": 2,
+            "duration_s": null
+          }
+        ],
+        "root_cause_task": "quality_gate",
+        "all_tasks": [
+          "validate_data=success",
+          "preprocess=success",
+          "train_model=success",
+          "evaluate_and_log=success",
+          "quality_gate=failed",
+          "register_candidate=upstream_failed"
+        ]
+      },
+      "error": null,
+      "duration_ms": 240.2,
+      "request_id": "692b68a43afc",
+      "evidence_id": "E2"
+    },
+    {
+      "tool": "mlflow_list_runs",
+      "status": "ok",
+      "data": {
+        "count": 5,
+        "runs": [
+          {
+            "run_id": "853134393bcc41d4b4a6f0d4fcf7338f",
+            "name": "airflow-manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c",
+            "experiment_id": "2",
+            "status": "FINISHED",
+            "started": "2026-11-12T06:17:03+00:00",
+            "metrics": {
+              "f1": 0.82,
+              "precision": 0.8849,
+              "recall": 0.764,
+              "roc_auc": 0.9651,
+              "train_f1": 0.9111
+            },
+            "dataset_version": "v2",
+            "algorithm": "random_forest",
+            "quality_gate": "failed"
+          },
+          {
+            "run_id": "e868c9c7ade34e948c66c8fd0c89f793",
+            "name": "airflow-manual__2026-11-12T06:09:34.860683+00:00_1hNhlUrr",
+            "experiment_id": "2",
+            "status": "FINISHED",
+            "started": "2026-11-12T06:10:48+00:00",
+            "metrics": {
+              "f1": 0.82,
+              "precision": 0.8849,
+              "recall": 0.764,
+              "roc_auc": 0.9651,
+              "train_f1": 0.9111
+            },
+            "dataset_version": "v2",
+            "algorithm": "random_forest",
+            "quality_gate": "passed"
+          },
+          {
+            "run_id": "3997a879e76841b7b2f3f7f07ccd9b2a",
+            "name": "airflow-manual__2026-11-11T20:48:00.526165+00:00_kH3sVoYF",
+            "experiment_id": "2",
+            "status": "FINISHED",
+            "started": "2026-11-11T20:49:36+00:00",
+            "metrics": {
+              "f1": 0.82,
+              "precision": 0.8849,
+              "recall": 0.764,
+              "roc_auc": 0.9651,
+              "train_f1": 0.9111
+            },
+            "dataset_version": "v2",
+            "algorithm": "random_forest",
+            "quality_gate": "passed"
+          },
+          {
+            "run_id": "220dc2ed0f514d7cb7e029830a090d9f",
+            "name": "v2-logreg-balanced",
+            "experiment_id": "2",
+            "status": "FINISHED",
+            "started": "2026-11-11T20:15:18+00:00",
+            "metrics": {
+              "f1": 0.7749,
+              "precision": 0.6697,
+              "recall": 0.9193,
+              "roc_auc": 0.9622,
+              "train_f1": 0.7818
+            },
+            "dataset_version": "v2",
+            "algorithm": "logistic_regression",
+            "quality_gate": "passed"
+          },
+          {
+            "run_id": "07e29a5f75a641208ad51abcfcda163b",
+            "name": "v2-rf-overfit",
+            "experiment_id": "2",
+            "status": "FINISHED",
+            "started": "2026-11-11T20:14:39+00:00",
+            "metrics": {
+              "f1": 0.8239,
+              "precision": 0.8857,
+              "recall": 0.7702,
+              "roc_auc": 0.9643,
+              "train_f1": 1.0
+            },
+            "dataset_version": "v2",
+            "algorithm": "random_forest",
+            "quality_gate": "passed"
+          }
+        ]
+      },
+      "error": null,
+      "duration_ms": 843.4,
+      "request_id": "692b68a43afc",
+      "evidence_id": "E3"
+    },
+    {
+      "tool": "mlflow_get_run",
+      "status": "ok",
+      "data": {
+        "run_id": "853134393bcc41d4b4a6f0d4fcf7338f",
+        "name": "airflow-manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c",
+        "experiment_id": "2",
+        "status": "FINISHED",
+        "started": "2026-11-12T06:17:03+00:00",
+        "metrics": {
+          "train_f1": 0.9111,
+          "test_f1": 0.82,
+          "f1": 0.82,
+          "precision": 0.8849,
+          "recall": 0.764,
+          "accuracy": 0.928,
+          "roc_auc": 0.9651,
+          "test_rows": 750.0
+        },
+        "dataset_version": "v2",
+        "algorithm": "random_forest",
+        "quality_gate": "failed",
+        "params": {
+          "algorithm": "random_forest",
+          "n_estimators": "200",
+          "max_depth": "8"
+        },
+        "provenance": {
+          "dvc.dataset_version": "v2",
+          "dvc.md5": "e2e91db55e872ca729d8455cef604342",
+          "dvc.dirty": "false",
+          "git.commit": "ac2074bf1464bf6021987945f08983a26f7a1127",
+          "quality_gate": "failed",
+          "trigger": "airflow",
+          "airflow.dag_run_id": "manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c"
+        },
+        "artifacts": [
+          "metrics.json",
+          "quality_gate.json"
+        ],
+        "registered_versions": []
+      },
+      "error": null,
+      "duration_ms": 674.0,
+      "request_id": "692b68a43afc",
+      "evidence_id": "E4"
+    },
+    {
+      "tool": "mlflow_model_registry",
+      "status": "ok",
+      "data": {
+        "name": "churn-classifier",
+        "aliases": {
+          "candidate": "4",
+          "production": "1"
+        },
+        "versions": [
+          {
+            "version": "1",
+            "aliases": [
+              "production"
+            ],
+            "run_id": "9750c8125dc4409089d4cf1522fd1d72",
+            "run_name": "v1-rf-d6-registered",
+            "f1": 0.6667,
+            "dataset_version": "v1"
+          },
+          {
+            "version": "2",
+            "aliases": [],
+            "run_id": "07e29a5f75a641208ad51abcfcda163b",
+            "run_name": "v2-rf-overfit",
+            "f1": 0.8239,
+            "dataset_version": "v2"
+          },
+          {
+            "version": "3",
+            "aliases": [],
+            "run_id": "220dc2ed0f514d7cb7e029830a090d9f",
+            "run_name": "v2-logreg-balanced",
+            "f1": 0.7749,
+            "dataset_version": "v2"
+          },
+          {
+            "version": "4",
+            "aliases": [
+              "candidate"
+            ],
+            "run_id": "e868c9c7ade34e948c66c8fd0c89f793",
+            "run_name": "airflow-manual__2026-11-12T06:09:34.860683+00:00_1hNhlUrr",
+            "f1": 0.82,
+            "dataset_version": "v2"
+          }
+        ]
+      },
+      "error": null,
+      "duration_ms": 824.1,
+      "request_id": "692b68a43afc",
+      "evidence_id": "E5"
+    }
+  ]
+}

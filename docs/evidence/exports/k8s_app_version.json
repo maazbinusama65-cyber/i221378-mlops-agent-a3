@@ -1,0 +1,25 @@
+{
+  "tool": "k8s_app_version",
+  "status": "ok",
+  "data": {
+    "deployment": "churn-api",
+    "image": "churn-api:1.0.0",
+    "version_label": "1.0.0",
+    "generation": 2,
+    "observed_generation": 2,
+    "config": {
+      "APP_VERSION": "1.0.0",
+      "MODEL_RUN_ID": "9750c8125dc4409089d4cf1522fd1d72",
+      "DATASET_VERSION": "v1",
+      "MODEL_PATH": "/app/models/model.joblib"
+    },
+    "replicas": {
+      "desired": 2,
+      "ready": 2
+    }
+  },
+  "error": null,
+  "duration_ms": 111.3,
+  "request_id": "5257a76b2ef2",
+  "evidence_id": "E11"
+}

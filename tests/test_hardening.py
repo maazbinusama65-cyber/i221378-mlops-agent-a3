@@ -63,7 +63,8 @@ def test_airflow_path_segments_cannot_redirect_requests(airflow, bad):
 
 
 @pytest.mark.parametrize("conf", [{"evil": 1}, {"min_f1": 7}, {"n_estimators": 10**9}, {"algorithm": "rm -rf"},
-                                  {"data_path": "../../etc/passwd"}, {"data_path": "/etc/passwd"}])
+                                  {"data_path": "../../etc/passwd"}, {"data_path": "/etc/passwd"}, {"data_path": "data/../secrets.csv"},
+                                  {"data_path": "data/notes.txt"}])
 def test_trigger_conf_is_restricted_to_safe_parameters(airflow, conf):
     registry, calls = airflow
     res = registry.execute("airflow_trigger_dag", {"conf": conf})
@@ -73,7 +74,8 @@ def test_trigger_conf_is_restricted_to_safe_parameters(airflow, conf):
 
 def test_valid_trigger_conf_still_reaches_confirmation(airflow):
     registry, _ = airflow
-    res = registry.execute("airflow_trigger_dag", {"conf": {"min_f1": 0.6, "algorithm": "random_forest", "n_estimators": 100}})
+    conf = {"min_f1": 0.6, "algorithm": "random_forest", "n_estimators": 100, "data_path": "data/failure_injection/churn_corrupt.csv"}
+    res = registry.execute("airflow_trigger_dag", {"conf": conf})
     assert res.status is Status.CONFIRMATION_REQUIRED
 
 

@@ -1,0 +1,26 @@
+{
+  "tool": "k8s_services",
+  "status": "ok",
+  "data": {
+    "namespace": "mlops-agent",
+    "services": [
+      {
+        "name": "churn-api",
+        "type": "ClusterIP",
+        "cluster_ip": "10.43.239.150",
+        "ports": [
+          "80->http"
+        ],
+        "selector": {
+          "app": "churn-api"
+        },
+        "ready_endpoints": 2,
+        "not_ready_endpoints": 0
+      }
+    ]
+  },
+  "error": null,
+  "duration_ms": 154.0,
+  "request_id": "69e438ea2c1c",
+  "evidence_id": "E12"
+}

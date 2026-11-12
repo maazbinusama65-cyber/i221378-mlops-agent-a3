@@ -1,0 +1,68 @@
+{
+  "tool": "mlflow_best_run",
+  "status": "ok",
+  "data": {
+    "metric": "f1",
+    "considered_runs": 13,
+    "best": {
+      "run_id": "07e29a5f75a641208ad51abcfcda163b",
+      "name": "v2-rf-overfit",
+      "experiment_id": "2",
+      "status": "FINISHED",
+      "started": "2026-11-11T20:14:39+00:00",
+      "metrics": {
+        "f1": 0.8239,
+        "precision": 0.8857,
+        "recall": 0.7702,
+        "roc_auc": 0.9643,
+        "train_f1": 1.0
+      },
+      "dataset_version": "v2",
+      "algorithm": "random_forest",
+      "quality_gate": "passed",
+      "git_commit": "ae7287e20343f310730cb5adc29af05d4242f558",
+      "dvc_md5": "e2e91db55e872ca729d8455cef604342"
+    },
+    "ranking": [
+      {
+        "run_id": "07e29a5f75a641208ad51abcfcda163b",
+        "name": "v2-rf-overfit",
+        "f1": 0.8239,
+        "dataset_version": "v2"
+      },
+      {
+        "run_id": "853134393bcc41d4b4a6f0d4fcf7338f",
+        "name": "airflow-manual__2026-11-12T06:15:57.364460+00:00_zNDhCG2c",
+        "f1": 0.82,
+        "dataset_version": "v2"
+      },
+      {
+        "run_id": "e868c9c7ade34e948c66c8fd0c89f793",
+        "name": "airflow-manual__2026-11-12T06:09:34.860683+00:00_1hNhlUrr",
+        "f1": 0.82,
+        "dataset_version": "v2"
+      },
+      {
+        "run_id": "3997a879e76841b7b2f3f7f07ccd9b2a",
+        "name": "airflow-manual__2026-11-11T20:48:00.526165+00:00_kH3sVoYF",
+        "f1": 0.82,
+        "dataset_version": "v2"
+      },
+      {
+        "run_id": "e7fd6e85e4f940a593a2da4c8f9ffb99",
+        "name": "v2-logreg",
+        "f1": 0.8052,
+        "dataset_version": "v2"
+      }
+    ],
+    "caveats": [
+      "train/test F1 gap 0.18 > 0.1: possible overfitting",
+      "margin over runner-up < 0.02: difference may be within noise"
+    ],
+    "production_ready": "not asserted: the top metric alone does not establish production readiness (needs the caveats resolved plus deployment/serving checks)"
+  },
+  "error": null,
+  "duration_ms": 1095.0,
+  "request_id": "42bec5256323",
+  "evidence_id": "E4"
+}

@@ -39,12 +39,26 @@ services:
     volumes:
       - .:/opt/airflow/project
       - airflow-home:/opt/airflow/state
+    restart: unless-stopped
+    # Plain supervisor instead of `airflow standalone`: standalone multiplexes every component's output through
+    # one pipe, and a broken pipe silently killed the scheduler/dag-processor. Here each component writes straight
+    # to the container log and the container exits (and restarts) if any component dies.
     command:
       - bash
       - -c
       - |
+        set -e
         echo "{\"admin\": \"$$AIRFLOW_ADMIN_PASSWORD\"}" > /opt/airflow/passwords.json
-        exec airflow standalone
+        export AIRFLOW__API_AUTH__JWT_SECRET="$$(python -c 'import secrets; print(secrets.token_hex(32))')"
+        export AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://localhost:8080/execution/
+        airflow db migrate
+        airflow api-server --port 8080 &
+        airflow scheduler &
+        airflow dag-processor &
+        airflow triggerer &
+        wait -n
+        echo "an Airflow component exited; stopping container so it restarts" >&2
+        exit 1
 
   # Single-node Kubernetes (k3s) used as the real cluster for the Kubernetes agent tools.
   k3s:

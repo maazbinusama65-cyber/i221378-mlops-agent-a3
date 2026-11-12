@@ -1,0 +1,110 @@
+{
+  "scenario": "04_deployment_health",
+  "question": "Is my prediction API deployment healthy? Which application version is deployed and what do the services expose?",
+  "request_id": "6127f2cc81b3",
+  "llm_steps": 4,
+  "answer": "Known facts:\n- The `churn-api` deployment in namespace `mlops-agent` is healthy: desired 2 replicas, both ready, overall healthy flag true. One pod reported readiness probe warnings but no fault detected. [E1]\n- Deployed application version uses image `churn-api:1.0.0` with version label `1.0.0`; config shows model run ID `9750c8125dc4409089d4cf1522fd1d72`, dataset version `v1`. [E2]\n- The `churn-api` service is a ClusterIP exposing port 80 mapped to the container’s `http` port, with 2 ready endpoints and 0 not‑ready endpoints. [E3]\n\nUncertainties:\n- None; all requested information retrieved.\n\nRecommended actions:\n- None required; deployment is healthy and services are correctly exposing the API.",
+  "pending_confirmations": [],
+  "operator_notes": [],
+  "tool_evidence": [
+    {
+      "tool": "k8s_diagnose_deployment",
+      "status": "ok",
+      "data": {
+        "deployment": "churn-api",
+        "desired": 2,
+        "ready": 2,
+        "healthy": true,
+        "pods_total": 2,
+        "unhealthy_pods": [
+          {
+            "name": "churn-api-74569b98d5-ks558",
+            "phase": "Running",
+            "ready": "1/1",
+            "restarts": 2,
+            "age": "9h29m",
+            "waiting_reason": null,
+            "log_tail": [
+              "INFO:     10.42.0.1:58918 - \"GET /ready HTTP/1.1\" 200 OK",
+              "INFO:     10.42.0.1:58926 - \"GET /health HTTP/1.1\" 200 OK",
+              "INFO:     10.42.0.1:58066 - \"GET /ready HTTP/1.1\" 200 OK",
+              "INFO:     10.42.0.1:58072 - \"GET /health HTTP/1.1\" 200 OK",
+              "INFO:     10.42.0.1:58082 - \"GET /ready HTTP/1.1\" 200 OK",
+              "INFO:     10.42.0.1:54472 - \"GET /ready HTTP/1.1\" 200 OK"
+            ]
+          }
+        ],
+        "warning_events": [
+          {
+            "type": "Warning",
+            "reason": "Unhealthy",
+            "object": "Pod/churn-api-74569b98d5-ks558",
+            "message": "Readiness probe failed: Get \"http://10.42.0.5:8000/ready\": dial tcp 10.42.0.5:8000: connect: connection refused",
+            "count": 18,
+            "age": "14m12s",
+            "age_s": 852
+          }
+        ],
+        "older_warning_events_ignored": 2,
+        "likely_causes": [
+          "no fault detected in pod/probe state"
+        ]
+      },
+      "error": null,
+      "duration_ms": 26299.6,
+      "request_id": "6127f2cc81b3",
+      "evidence_id": "E1"
+    },
+    {
+      "tool": "k8s_app_version",
+      "status": "ok",
+      "data": {
+        "deployment": "churn-api",
+        "image": "churn-api:1.0.0",
+        "version_label": "1.0.0",
+        "generation": 1,
+        "observed_generation": 1,
+        "config": {
+          "APP_VERSION": "1.0.0",
+          "MODEL_RUN_ID": "9750c8125dc4409089d4cf1522fd1d72",
+          "DATASET_VERSION": "v1",
+          "MODEL_PATH": "/app/models/model.joblib"
+        },
+        "replicas": {
+          "desired": 2,
+          "ready": 2
+        }
+      },
+      "error": null,
+      "duration_ms": 46.9,
+      "request_id": "6127f2cc81b3",
+      "evidence_id": "E2"
+    },
+    {
+      "tool": "k8s_services",
+      "status": "ok",
+      "data": {
+        "namespace": "mlops-agent",
+        "services": [
+          {
+            "name": "churn-api",
+            "type": "ClusterIP",
+            "cluster_ip": "10.43.239.150",
+            "ports": [
+              "80->http"
+            ],
+            "selector": {
+              "app": "churn-api"
+            },
+            "ready_endpoints": 2,
+            "not_ready_endpoints": 0
+          }
+        ]
+      },
+      "error": null,
+      "duration_ms": 56.3,
+      "request_id": "6127f2cc81b3",
+      "evidence_id": "E3"
+    }
+  ]
+}

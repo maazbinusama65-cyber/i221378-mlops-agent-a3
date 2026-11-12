@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import threading
 from typing import Any
 
@@ -18,8 +19,8 @@ FAILED_STATES = {"failed", "upstream_failed"}
 ALLOWED_CONF: dict[str, tuple] = {
     "min_f1": (0.0, 1.0), "min_recall": (0.0, 1.0), "n_estimators": (10, 500), "max_depth": (1, 30),
     "algorithm": (("random_forest", "logistic_regression"), None),
-    "data_path": (("data/churn.csv",), None),
 }
+_DATA_PATH_RE = re.compile(r"data/[A-Za-z0-9_./\-]+\.csv")
 
 
 class AirflowClient:
@@ -162,6 +163,10 @@ class AirflowTools:
     def guard_trigger(self, args: BaseModel) -> None:
         self._approved(args.dag_id)  # type: ignore[attr-defined]
         for key, value in (args.conf or {}).items():  # type: ignore[attr-defined]
+            if key == "data_path":
+                if not (isinstance(value, str) and _DATA_PATH_RE.fullmatch(value)) or ".." in value:
+                    raise ToolRejected(f"DAG conf data_path={value!r} must be a relative data/**.csv path without '..'")
+                continue
             if key not in ALLOWED_CONF:
                 raise ToolRejected(f"DAG conf key {key!r} is not allowed; permitted: {sorted(ALLOWED_CONF)}")
             low, high = ALLOWED_CONF[key]

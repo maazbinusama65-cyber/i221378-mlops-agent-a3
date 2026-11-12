@@ -1,0 +1,32 @@
+{
+  "scenario": "F3b_k8s_restart_request",
+  "question": "The ConfigMap has been corrected. Restart the churn-api deployment so it picks up the fix.",
+  "request_id": "4d42b63470de",
+  "llm_steps": 2,
+  "answer": "Known facts:\n- The user requested a restart of the `churn-api` deployment in namespace `mlops-agent`. The system generated a confirmation request with ID **f546baaa** to perform a rolling‑restart. [E1]\n\nUncertainties:\n- No confirmation has been received yet; the restart has not been executed.\n\nRecommended actions:\n- Ask the user to confirm the restart by typing `/confirm f546baaa`.",
+  "pending_confirmations": [
+    {
+      "confirmation_id": "f546baaa",
+      "action": "Rolling-restart deployment 'churn-api' in namespace 'mlops-agent'",
+      "instruction": "Not executed. The USER must type: /confirm f546baaa"
+    }
+  ],
+  "operator_notes": [
+    "configmap/churn-api-config configured"
+  ],
+  "tool_evidence": [
+    {
+      "tool": "k8s_restart_deployment",
+      "status": "confirmation_required",
+      "data": {
+        "confirmation_id": "f546baaa",
+        "action": "Rolling-restart deployment 'churn-api' in namespace 'mlops-agent'",
+        "instruction": "Not executed. The USER must type: /confirm f546baaa"
+      },
+      "error": null,
+      "duration_ms": 0.1,
+      "request_id": "4d42b63470de",
+      "evidence_id": "E1"
+    }
+  ]
+}

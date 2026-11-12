@@ -1,0 +1,29 @@
+{
+  "scenario": "06_tool_unavailable_mlflow_down",
+  "question": "What is the best model by F1 in MLflow, and what was its F1 score?",
+  "request_id": "71a608815f2c",
+  "llm_steps": 3,
+  "answer": "Known facts:\n- None – attempts to query MLflow for experiments and best runs failed (service unreachable)【E1】【E2】.\n\nUncertainties:\n- Current best model by F1 score cannot be determined because the MLflow tracking server is not reachable.\n- No information about available experiments, runs, or metrics is available.\n\nRecommended actions:\n- Verify that the MLflow tracking server is up and reachable (e.g., check the service endpoint, network connectivity, or restart the MLflow server). \n- Once MLflow is operational, run `mlflow_best_run` (or list runs) again to obtain the best F1‑score model.",
+  "pending_confirmations": [],
+  "operator_notes": [],
+  "tool_evidence": [
+    {
+      "tool": "mlflow_best_run",
+      "status": "unavailable",
+      "data": null,
+      "error": "MLflow at http://127.0.0.1:9 unreachable: API request to http://127.0.0.1:9/api/2.0/mlflow/experiments/search failed with exception HTTPConnectionPool(host='127.0.0.1', port=9): Max retries exceeded wit",
+      "duration_ms": 4165.0,
+      "request_id": "71a608815f2c",
+      "evidence_id": "E1"
+    },
+    {
+      "tool": "mlflow_list_experiments",
+      "status": "unavailable",
+      "data": null,
+      "error": "MLflow at http://127.0.0.1:9 unreachable: API request to http://127.0.0.1:9/api/2.0/mlflow/experiments/search failed with exception HTTPConnectionPool(host='127.0.0.1', port=9): Max retries exceeded wit",
+      "duration_ms": 4175.7,
+      "request_id": "71a608815f2c",
+      "evidence_id": "E2"
+    }
+  ]
+}

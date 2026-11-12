@@ -1,0 +1,29 @@
+{
+  "tool": "dvc_dataset_version",
+  "status": "ok",
+  "data": {
+    "path": "data/churn.csv",
+    "dataset_version": "v2",
+    "md5": "e2e91db55e872ca729d8455cef604342",
+    "size_bytes": 66525,
+    "dataset_commit": {
+      "commit": "ae7287e20343f310730cb5adc29af05d4242f558",
+      "short": "ae7287e",
+      "date": "2026-11-12T01:06:27+05:00",
+      "subject": "data: regenerate dataset v2 (drifted)",
+      "tags": [
+        "data-v2"
+      ]
+    },
+    "git_head": "ac2074bf1464bf6021987945f08983a26f7a1127",
+    "remote": {
+      "name": "localstore",
+      "url": "../.dvc-storage"
+    },
+    "in_remote": true
+  },
+  "error": null,
+  "duration_ms": 391.6,
+  "request_id": "cb8ddcddefe0",
+  "evidence_id": "E1"
+}

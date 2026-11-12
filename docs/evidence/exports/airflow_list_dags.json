@@ -1,0 +1,22 @@
+{
+  "tool": "airflow_list_dags",
+  "status": "ok",
+  "data": {
+    "dags": [
+      {
+        "dag_id": "churn_training_pipeline",
+        "paused": false,
+        "approved_to_trigger": true,
+        "tags": [
+          "mlops",
+          "training",
+          "approved"
+        ]
+      }
+    ]
+  },
+  "error": null,
+  "duration_ms": 115.9,
+  "request_id": "f9ef56bf6ce8",
+  "evidence_id": "E7"
+}

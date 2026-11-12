@@ -1,0 +1,125 @@
+{
+  "scenario": "01_dataset_provenance",
+  "question": "Which dataset version and git commit were used to train MLflow run 9750c8125dc4409089d4cf1522fd1d72? Verify that this exact dataset can be reproduced and tell me how.",
+  "request_id": "994b1f3fa694",
+  "llm_steps": 5,
+  "answer": "**Known facts**\n- The MLflow run **9750c8125dc4409089d4cf1522fd1d72** used dataset version **v1** (DVC tag) and the Git commit **ae7287e20343f310730cb5adc29af05d4242f558** for the codebase. [E1]\n- The DVC tag **v1** corresponds to the Git commit **70810ce70e50ef05f969156671e4b9a63a4407d2** (tag `data‑v1`) and the dataset file `data/churn.csv` has MD5 **b776848b13770831102c4156b41f0cdd**. [E3]\n- Reproducing this exact dataset is possible and has been verified: the exported sandbox file matches the recorded MD5. [E4]  \n  Reproduction steps (non‑destructive):\n  1. `git checkout data-v1 -- data/churn.csv.dvc` # restore the DVC pointer for the tag  \n  2. `dvc checkout data/churn.csv.dvc` # materialise the data from the DVC cache (run `dvc pull` first if needed)  \n  3. `md5sum data/churn.csv` # should output **b776848b13770831102c4156b41f0cdd**  \n  4. (optional) Return to current state: `git checkout HEAD -- data/churn.csv.dvc && dvc checkout data/churn.csv.dvc`  \n\n**Uncertainties**\n- None; all required information is available from the tools.\n\n**Recommended actions**\n- No further action required; the dataset version and its reproducibility have been confirmed.",
+  "pending_confirmations": [],
+  "operator_notes": [],
+  "tool_evidence": [
+    {
+      "tool": "mlflow_get_run",
+      "status": "ok",
+      "data": {
+        "run_id": "9750c8125dc4409089d4cf1522fd1d72",
+        "name": "v1-rf-d6-registered",
+        "experiment_id": "2",
+        "status": "FINISHED",
+        "started": "2026-11-11T20:10:13+00:00",
+        "metrics": {
+          "train_f1": 0.8199,
+          "test_f1": 0.6667,
+          "f1": 0.6667,
+          "precision": 0.9,
+          "recall": 0.5294,
+          "accuracy": 0.928,
+          "roc_auc": 0.9599,
+          "test_rows": 375.0
+        },
+        "dataset_version": "v1",
+        "algorithm": "random_forest",
+        "quality_gate": "passed",
+        "params": {
+          "algorithm": "random_forest",
+          "n_estimators": "150",
+          "max_depth": "6",
+          "C": "1.0"
+        },
+        "provenance": {
+          "dvc.dataset_version": "v1",
+          "dvc.md5": "b776848b13770831102c4156b41f0cdd",
+          "dvc.dirty": "false",
+          "git.commit": "ae7287e20343f310730cb5adc29af05d4242f558",
+          "quality_gate": "passed",
+          "trigger": "cli"
+        },
+        "artifacts": [
+          "metrics.json",
+          "quality_gate.json"
+        ],
+        "registered_versions": [
+          {
+            "name": "churn-classifier",
+            "version": "1"
+          }
+        ]
+      },
+      "error": null,
+      "duration_ms": 2056.4,
+      "request_id": "994b1f3fa694",
+      "evidence_id": "E1"
+    },
+    {
+      "tool": "dvc_explain_reproduce",
+      "status": "error",
+      "data": null,
+      "error": "git show failed: fatal: invalid object name 'v1'.",
+      "duration_ms": 92.6,
+      "request_id": "994b1f3fa694",
+      "evidence_id": "E2"
+    },
+    {
+      "tool": "dvc_resolve_reference",
+      "status": "ok",
+      "data": {
+        "found": true,
+        "path": "data/churn.csv",
+        "md5": "b776848b13770831102c4156b41f0cdd",
+        "size": 33261,
+        "version": "v1",
+        "description": "Synthetic churn dataset, 1500 rows (seed 11)",
+        "dataset_commit": {
+          "commit": "70810ce70e50ef05f969156671e4b9a63a4407d2",
+          "short": "70810ce",
+          "date": "2026-11-12T01:06:15+05:00",
+          "subject": "data: regenerate dataset v1 with a learnable churn signal",
+          "tags": [
+            "data-v1"
+          ]
+        },
+        "in_remote": true,
+        "reproduce_with_tag": "data-v1"
+      },
+      "error": null,
+      "duration_ms": 505.1,
+      "request_id": "994b1f3fa694",
+      "evidence_id": "E3"
+    },
+    {
+      "tool": "dvc_explain_reproduce",
+      "status": "ok",
+      "data": {
+        "rev": "data-v1",
+        "version": "v1",
+        "expected_md5": "b776848b13770831102c4156b41f0cdd",
+        "non_destructive_alternative": "dvc get . data/churn.csv --rev data-v1 -o <dir>",
+        "steps": [
+          "git checkout data-v1 -- data/churn.csv.dvc      # restore the recorded dataset pointer",
+          "dvc checkout data/churn.csv.dvc                    # materialise data from the DVC cache (or `dvc pull` first)",
+          "md5sum data/churn.csv                              # must equal b776848b13770831102c4156b41f0cdd",
+          "git checkout HEAD -- data/churn.csv.dvc && dvc checkout data/churn.csv.dvc   # return to the current dataset"
+        ],
+        "in_remote": true,
+        "verification": {
+          "exported_to": ".agent-sandbox/data-v1/churn.csv",
+          "actual_md5": "b776848b13770831102c4156b41f0cdd",
+          "matches_recorded_md5": true
+        }
+      },
+      "error": null,
+      "duration_ms": 37860.1,
+      "request_id": "994b1f3fa694",
+      "evidence_id": "E4"
+    }
+  ]
+}
